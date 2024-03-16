@@ -1,12 +1,20 @@
-from domain.entities.product import Product
-from domain.constants import (
-    TransactionStatus,
+from src.domain.constants import (
     PRODUCT_ENTITY_REQUIRED_ERROR,
+    TRANSACTION_FLOAT_TYPE_ERROR,
     TRANSACTION_STATUS_TYPE_ERROR,
-    TRANSACTION_FLOAT_TYPE_ERROR
+    TransactionStatus,
 )
+from src.domain.entities.product import Product
+
+
 class Transaction:
-    def __init__(self, product: Product, paid_amount: float, change_given: float, status: TransactionStatus):
+    def __init__(
+        self,
+        product: Product,
+        paid_amount: float,
+        change_given: float,
+        status: TransactionStatus,
+    ):
         if not isinstance(product, Product):
             raise ValueError(PRODUCT_ENTITY_REQUIRED_ERROR)
 
