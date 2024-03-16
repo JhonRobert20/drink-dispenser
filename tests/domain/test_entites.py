@@ -1,7 +1,14 @@
 import unittest
 import datetime
 from domain.entities.product import Product
-from domain.constants import EXPIRATION_DATE_FORMAT_ERROR
+from domain.constants import (
+    EXPIRATION_DATE_FORMAT_ERROR,
+    TRANSACTION_STATUS_TYPE_ERROR,
+    PRODUCT_ENTITY_REQUIRED_ERROR,
+    TRANSACTION_FLOAT_TYPE_ERROR,
+    TransactionStatus
+)
+from domain.entities.transaction import Transaction
 
 
 class TestProduct(unittest.TestCase):
@@ -20,6 +27,61 @@ class TestProduct(unittest.TestCase):
         past_date = datetime.date.today() - datetime.timedelta(days=10)
         product = Product(name="Coke", price=2, expiration_date=past_date, code="1234")
         self.assertFalse(product.is_valid())
+
+class TestTransaction(unittest.TestCase):
+    def setUp(self):
+        self.product = Product(
+            name="Coke",
+            price=2,
+            expiration_date=datetime.date.today() + datetime.timedelta(days=10),
+            code="1234"
+        )
+        self.invalid_product = "not a product instance"
+
+    def test_transaction_creation_invalid_product(self):
+        with self.assertRaises(ValueError) as context:
+            Transaction(
+                product=self.invalid_product,
+                paid_amount=2,
+                change_given=0,
+                status=TransactionStatus.PENDING
+            )
+        self.assertIn(PRODUCT_ENTITY_REQUIRED_ERROR, str(context.exception))
+
+    def test_transaction_creation_invalid_status(self):
+        with self.assertRaises(ValueError) as context:
+            Transaction(
+                product=self.product,
+                paid_amount=2.0,
+                change_given=0.0,
+                status="invalid status"
+            )
+        self.assertIn(TRANSACTION_STATUS_TYPE_ERROR, str(context.exception))
+
+    def test_transaction_creation_invalid_floats(self):
+        with self.assertRaises(ValueError) as context:
+            Transaction(
+                product=self.product,
+                paid_amount=2,
+                change_given=2,
+                status=TransactionStatus.PENDING
+            )
+        self.assertIn(TRANSACTION_FLOAT_TYPE_ERROR, str(context.exception))
+
+    def test_transaction_creation(self):
+        transaction = Transaction(
+            product=self.product,
+            paid_amount=2.0,
+            change_given=0.0,
+            status=TransactionStatus.PENDING
+        )
+        self.assertEqual(transaction.product, self.product)
+        self.assertEqual(transaction.paid_amount, 2)
+        self.assertEqual(transaction.change_given, 0)
+        self.assertEqual(transaction.status, TransactionStatus.PENDING)
+        transaction.mark_as_completed()
+        self.assertEqual(transaction.status, TransactionStatus.COMPLETED)
+
 
 
 if __name__ == '__main__':
