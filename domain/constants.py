@@ -11,3 +11,6 @@ class TransactionStatus(Enum):
     ERROR = "error"
     CANCELLED = "cancelled"
     REFUNDED = "refunded"
+
+COIN_VALID_DENOMINATIONS = [0.05, 0.10, 0.20, 0.50, 1.00, 2.00]
+COIN_VALID_CURRENCY = ["EUR"]
