@@ -2,7 +2,7 @@ import unittest
 import datetime
 from domain.entities.product import Product
 from domain.constants import (
-    EXPIRATION_DATE_FORMAT_ERROR,
+    PRODUCT_EXPIRATION_FORMAT_ERROR,
     TRANSACTION_STATUS_TYPE_ERROR,
     PRODUCT_ENTITY_REQUIRED_ERROR,
     TRANSACTION_FLOAT_TYPE_ERROR,
@@ -16,7 +16,7 @@ class TestProduct(unittest.TestCase):
         with self.assertRaises(ValueError) as context:
             Product(name="Coke", price=2, expiration_date="not a date", code="1234")
 
-        self.assertIn(EXPIRATION_DATE_FORMAT_ERROR, str(context.exception))
+        self.assertIn(PRODUCT_EXPIRATION_FORMAT_ERROR, str(context.exception))
 
     def test_product_is_valid_with_future_expiration_date(self):
         future_date = datetime.date.today() + datetime.timedelta(days=10)

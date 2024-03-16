@@ -1,11 +1,11 @@
 import datetime
-from domain.constants import EXPIRATION_DATE_FORMAT_ERROR
+from domain.constants import PRODUCT_EXPIRATION_FORMAT_ERROR
 
 
 class Product:
     def __init__(self, name: str, code: str, price: float, expiration_date: datetime.date):
         if not isinstance(expiration_date, datetime.date):
-            raise ValueError(EXPIRATION_DATE_FORMAT_ERROR)
+            raise ValueError(PRODUCT_EXPIRATION_FORMAT_ERROR)
 
         self.name = name
         self.code = code
