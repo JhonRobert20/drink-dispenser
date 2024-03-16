@@ -1,0 +1,1 @@
+EXPIRATION_DATE_FORMAT_ERROR = "expiration date must be a datetime.date instance"
