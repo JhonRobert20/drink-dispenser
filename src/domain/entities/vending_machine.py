@@ -1,5 +1,6 @@
 from typing import List
 
+from src.domain.constants import VENDING_MACHINE_ADD_PRODUCT_ERROR
 from src.domain.entities.product import Product
 from src.domain.utils import PeekableProductsQueue
 
@@ -17,14 +18,19 @@ class VendingMachine:
     def add_product_to_slot(self, product: Product, slot_code: str):
         slot = self.get_slot_by_code(slot_code)
         if slot:
+            if slot.products.get_without_consume().bar_code != product.bar_code:
+                raise ValueError(VENDING_MACHINE_ADD_PRODUCT_ERROR)
             slot.products.put(product)
+
         else:
             new_products_queue = PeekableProductsQueue([product])
             self.slots.append(ProductSlot(new_products_queue, slot_code))
 
     def check_if_can_expend(self, slot_index: int):
-        product = self.slots[slot_index].products.get()
-        return product.is_valid()
+        product = self.slots[slot_index].products.get_if_exists()
+        if product:
+            return product.is_valid()
+        return False
 
     def consume_product_item(self, slot_index: int):
         return self.slots[slot_index].products.get_if_exists()
