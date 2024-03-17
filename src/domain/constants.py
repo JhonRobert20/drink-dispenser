@@ -4,6 +4,9 @@ PRODUCT_EXPIRATION_FORMAT_ERROR = "expiration date must be a datetime.date insta
 PRODUCT_ENTITY_REQUIRED_ERROR = "product must be a Product instance"
 TRANSACTION_STATUS_TYPE_ERROR = "status must be a TransactionStatus instance"
 TRANSACTION_FLOAT_TYPE_ERROR = "paid amount and change given must be float instances"
+VENDING_MACHINE_ADD_PRODUCT_ERROR = (
+    "The slot is already occupied with a different product"
+)
 
 
 class TransactionStatus(Enum):
