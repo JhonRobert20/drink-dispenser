@@ -10,6 +10,8 @@ from src.domain.constants import (
 )
 from src.domain.entities.product import Product
 from src.domain.entities.transaction import Transaction
+from src.domain.entities.vending_machine import ProductSlot, VendingMachine
+from src.domain.utils import PeekableProductsQueue
 
 
 class TestProduct(unittest.TestCase):
@@ -89,5 +91,48 @@ class TestTransaction(unittest.TestCase):
         self.assertEqual(transaction.status, TransactionStatus.COMPLETED)
 
 
-if __name__ == "__main__":
-    unittest.main()
+class TestVendingMachine(unittest.TestCase):
+    def setUp(self):
+        self.product_coke = Product(
+            name="Coke",
+            price=1.00,
+            expiration_date=datetime.date.today() + datetime.timedelta(days=5),
+            bar_code="1111",
+        )
+        self.product_sprite = Product(
+            name="Sprite",
+            price=1.00,
+            expiration_date=datetime.date.today() + datetime.timedelta(days=10),
+            bar_code="2222",
+        )
+
+        slot_queue_coke = PeekableProductsQueue([self.product_coke])
+        self.slot_coke = ProductSlot(products=slot_queue_coke, code="A1")
+
+        self.vending_machine = VendingMachine(slots=[self.slot_coke])
+
+    def test_add_product_to_existing_slot(self):
+        self.vending_machine.add_product_to_slot(self.product_sprite, "A1")
+        slot = self.vending_machine.get_slot_by_code("A1")
+        self.assertEqual(slot.products.qsize(), 2)
+
+    def test_add_product_to_new_slot(self):
+        self.vending_machine.add_product_to_slot(self.product_sprite, "B2")
+        slot = self.vending_machine.get_slot_by_code("B2")
+        self.assertIsNotNone(slot)
+        self.assertEqual(slot.products.qsize(), 1)
+
+    def test_consume_product_item(self):
+        self.vending_machine.consume_product_item(0)
+        slot = self.vending_machine.get_slot_by_code("A1")
+        self.assertEqual(slot.products.qsize(), 0)
+
+    def test_check_stock_by_code(self):
+        stock_count = self.vending_machine.check_stock_by_code("A1")
+        self.assertEqual(stock_count, 1)
+
+    def test_check_all_stock(self):
+        all_stock = self.vending_machine.check_all_stock()
+        self.assertIn("A1", all_stock)
+        self.assertEqual(all_stock["A1"][0], 1)
+        self.assertEqual(all_stock["A1"][1], "Coke")
