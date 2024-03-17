@@ -15,20 +15,22 @@ from src.domain.entities.transaction import Transaction
 class TestProduct(unittest.TestCase):
     def test_product_creation_with_invalid_expiration_date_raises_value_error(self):
         with self.assertRaises(ValueError) as context:
-            Product(name="Coke", price=2, expiration_date="not a date", code="1234")
+            Product(name="Coke", price=2, expiration_date="not a date", bar_code="1234")
 
         self.assertIn(PRODUCT_EXPIRATION_FORMAT_ERROR, str(context.exception))
 
     def test_product_is_valid_with_future_expiration_date(self):
         future_date = datetime.date.today() + datetime.timedelta(days=10)
         product = Product(
-            name="Coke", price=2, expiration_date=future_date, code="1234"
+            name="Coke", price=2, expiration_date=future_date, bar_code="1234"
         )
         self.assertTrue(product.is_valid())
 
     def test_product_is_not_valid_with_past_expiration_date(self):
         past_date = datetime.date.today() - datetime.timedelta(days=10)
-        product = Product(name="Coke", price=2, expiration_date=past_date, code="1234")
+        product = Product(
+            name="Coke", price=2, expiration_date=past_date, bar_code="1234"
+        )
         self.assertFalse(product.is_valid())
 
 
@@ -38,7 +40,7 @@ class TestTransaction(unittest.TestCase):
             name="Coke",
             price=2,
             expiration_date=datetime.date.today() + datetime.timedelta(days=10),
-            code="1234",
+            bar_code="1234",
         )
         self.invalid_product = "not a product instance"
 
