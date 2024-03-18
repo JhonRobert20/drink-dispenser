@@ -2,6 +2,7 @@ import datetime
 import unittest
 
 from src.domain.constants import (
+    INVALID_COIN_ERROR,
     PRODUCT_ENTITY_REQUIRED_ERROR,
     PRODUCT_EXPIRATION_FORMAT_ERROR,
     TRANSACTION_FLOAT_TYPE_ERROR,
@@ -181,3 +182,9 @@ class TestVendingMachine(unittest.TestCase):
         slot = ProductSlot(products=slot_queue, code="A3")
         self.vending_machine.slots.append(slot)
         self.assertFalse(self.vending_machine.product_is_valid(2))
+
+    def test_add_invalid_coin_to_transaction(self):
+        coin = Coin(denomination=0.001, currency="EUR")
+        with self.assertRaises(ValueError) as context:
+            self.vending_machine.add_coin_to_transaction(coin)
+        self.assertIn(INVALID_COIN_ERROR, str(context.exception))
