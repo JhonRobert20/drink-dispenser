@@ -1,6 +1,10 @@
 from typing import List
 
-from src.domain.constants import VENDING_MACHINE_ADD_PRODUCT_ERROR, TransactionStatus
+from src.domain.constants import (
+    INVALID_COIN_ERROR,
+    VENDING_MACHINE_ADD_PRODUCT_ERROR,
+    TransactionStatus,
+)
 from src.domain.entities.product import Product
 from src.domain.entities.transaction import Transaction
 from src.domain.utils import PeekableProductsQueue
@@ -75,6 +79,10 @@ class VendingMachine:
     def add_coin_to_transaction(self, coin: Coin):
         self.coins.append(coin)
         self.coins_actual_transaction.append(coin)
+        if not coin.is_valid():
+            self.coins_actual_transaction.pop()
+            self.coins.pop()
+            raise ValueError(INVALID_COIN_ERROR)
 
     def get_existing_slot_index(self, slot_code: str):
         for slot in self.slots:
