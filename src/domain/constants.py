@@ -7,6 +7,7 @@ TRANSACTION_FLOAT_TYPE_ERROR = "paid amount and change given must be float insta
 VENDING_MACHINE_ADD_PRODUCT_ERROR = (
     "The slot is already occupied with a different product"
 )
+NOT_ENOUGH_COINS_ERROR = "Not enough coins to give change, returning paid amount."
 
 
 class TransactionStatus(Enum):
