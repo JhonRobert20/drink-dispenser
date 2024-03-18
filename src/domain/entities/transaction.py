@@ -1,3 +1,5 @@
+from typing import List
+
 from src.domain.constants import (
     PRODUCT_ENTITY_REQUIRED_ERROR,
     TRANSACTION_FLOAT_TYPE_ERROR,
@@ -5,6 +7,7 @@ from src.domain.constants import (
     TransactionStatus,
 )
 from src.domain.entities.product import Product
+from src.domain.value_objects.coin import Coin
 
 
 class Transaction:
@@ -12,8 +15,8 @@ class Transaction:
         self,
         product: Product,
         paid_amount: float,
-        change_given: float,
         status: TransactionStatus,
+        coins_in_machine: List[Coin],
     ):
         if not isinstance(product, Product):
             raise ValueError(PRODUCT_ENTITY_REQUIRED_ERROR)
@@ -21,13 +24,14 @@ class Transaction:
         if not isinstance(status, TransactionStatus):
             raise ValueError(TRANSACTION_STATUS_TYPE_ERROR)
 
-        if not isinstance(paid_amount, float) or not isinstance(change_given, float):
+        if not isinstance(paid_amount, float):
             raise ValueError(TRANSACTION_FLOAT_TYPE_ERROR)
 
         self.product = product
         self.paid_amount = paid_amount
-        self.change_given = change_given
+        self.change_amount = round(paid_amount - product.price, 2)
         self.status = status
+        self.coins_in_machine = coins_in_machine
 
     def __str__(self):
         return f"Transaction: {self.product} with status: {self.status}"
@@ -46,3 +50,29 @@ class Transaction:
 
     def mark_as_refunded(self):
         self.status = TransactionStatus.REFUNDED
+
+    def calculate_change_to_give(self) -> List[int]:
+        coins_in_machine = self.coins_in_machine
+        change_amount = self.change_amount
+        sorted_coins = sorted(
+            ((coin.denomination, i) for i, coin in enumerate(coins_in_machine)),
+            reverse=False,
+        )
+
+        coins_to_return = []
+        total_change_given = 0.0
+
+        for denomination, index in sorted_coins:
+            while total_change_given + denomination <= change_amount:
+                total_change_given += denomination
+                coins_to_return.append(index)
+
+                if total_change_given == change_amount:
+                    return coins_to_return
+
+        # send alarm to the vending machine to refill the coins
+        # send alarm to the manager to give change to the customer
+        print("Not enough coins to give change")
+        print(total_change_given)
+        print(change_amount)
+        raise ValueError("Not enough coins to give change")
