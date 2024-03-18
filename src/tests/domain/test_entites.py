@@ -120,17 +120,26 @@ class TestVendingMachine(unittest.TestCase):
             bar_code="4444",
         )
 
-        slot_queue_coke = PeekableProductsQueue([self.product_coke])
-        self.slot_coke = ProductSlot(products=slot_queue_coke, code="A1")
+        self.slot_coke = ProductSlot(
+            products=PeekableProductsQueue([self.product_coke]), code="A1"
+        )
         self.slot_to_expensive = ProductSlot(
             products=PeekableProductsQueue([self.to_expensive_product]), code="A2"
         )
 
         self.coin_05_eur = Coin(denomination=0.05, currency="EUR")
         self.coin_1_eur = Coin(denomination=1.00, currency="EUR")
+
+        self.initial_coins = [self.coin_1_eur, self.coin_05_eur, self.coin_05_eur]
+        self.initial_slot = [self.slot_coke, self.slot_to_expensive]
+
+        self.initial_total_money = round(
+            sum([coin.denomination for coin in self.initial_coins]), 2
+        )
+
         self.vending_machine = VendingMachine(
-            slots=[self.slot_coke, self.slot_to_expensive],
-            coins=[self.coin_1_eur, self.coin_05_eur, self.coin_05_eur],
+            slots=self.initial_slot,
+            coins=self.initial_coins,
         )
 
     def test_add_different_product_to_existing_slot(self):
@@ -145,17 +154,48 @@ class TestVendingMachine(unittest.TestCase):
         self.assertEqual(slot.products.qsize(), 1)
 
     def test_transaction_with_change(self):
+        self.assertEqual(len(self.vending_machine.coins_actual_transaction), 0)
+        slot = self.vending_machine.get_slot_by_code("A1")
+
         self.vending_machine.add_coin_to_transaction(
             Coin(denomination=1.00, currency="EUR")
         )
         self.vending_machine.add_coin_to_transaction(
             Coin(denomination=0.20, currency="EUR")
         )
+        total_money = round(
+            sum([coin.denomination for coin in self.vending_machine.coins]), 2
+        )
+        assert total_money == 2.30
+        total_money_transaction = round(
+            sum(
+                [
+                    coin.denomination
+                    for coin in self.vending_machine.coins_actual_transaction
+                ]
+            ),
+            2,
+        )
+        assert total_money_transaction == 1.20
+        product_price = slot.products.get_without_consume().price
+        expected_change = round(total_money_transaction - product_price, 2)
+        assert expected_change == 0.20
+
+        money_after_transaction = round(total_money - expected_change, 2)
+        assert money_after_transaction == 2.10
+
+        self.assertEqual(slot.products.qsize(), 1)
+        self.assertEqual(len(self.vending_machine.coins_actual_transaction), 2)
         self.vending_machine.consume_product_item(0)
-        slot = self.vending_machine.get_slot_by_code("A1")
+        total_money_after_transaction = round(
+            sum([coin.denomination for coin in self.vending_machine.coins]), 2
+        )
+        assert total_money_after_transaction == money_after_transaction
+
         self.assertEqual(slot.products.qsize(), 0)
+
         self.assertEqual(len(self.vending_machine.coins_actual_transaction), 0)
-        self.assertEqual(len(self.vending_machine.coins), 3)
+        self.assertEqual(len(self.vending_machine.coins), 4)
 
     def test_transaction_without_change(self):
         self.vending_machine.consume_product_item(1)
@@ -171,8 +211,8 @@ class TestVendingMachine(unittest.TestCase):
     def test_check_all_stock(self):
         all_stock = self.vending_machine.check_all_stock()
         self.assertIn("A1", all_stock)
-        self.assertEqual(all_stock["A1"][0], 1)
-        self.assertEqual(all_stock["A1"][1], "Coke")
+        self.assertEqual(all_stock["A1"][0], self.initial_slot[0].products.qsize())
+        self.assertEqual(all_stock["A1"][1], self.product_coke.name)
 
     def test_expired_product_is_not_valid(self):
         self.will_expire_product.expiration_date = (
@@ -188,3 +228,5 @@ class TestVendingMachine(unittest.TestCase):
         with self.assertRaises(ValueError) as context:
             self.vending_machine.add_coin_to_transaction(coin)
         self.assertIn(INVALID_COIN_ERROR, str(context.exception))
+        self.assertEqual(len(self.vending_machine.coins_actual_transaction), 0)
+        self.assertEqual(len(self.vending_machine.coins), len(self.initial_coins))
