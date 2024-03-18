@@ -6,12 +6,14 @@ from src.domain.constants import (
     PRODUCT_EXPIRATION_FORMAT_ERROR,
     TRANSACTION_FLOAT_TYPE_ERROR,
     TRANSACTION_STATUS_TYPE_ERROR,
+    VENDING_MACHINE_ADD_PRODUCT_ERROR,
     TransactionStatus,
 )
 from src.domain.entities.product import Product
 from src.domain.entities.transaction import Transaction
 from src.domain.entities.vending_machine import ProductSlot, VendingMachine
 from src.domain.utils import PeekableProductsQueue
+from src.domain.value_objects.coin import Coin
 
 
 class TestProduct(unittest.TestCase):
@@ -51,8 +53,8 @@ class TestTransaction(unittest.TestCase):
             Transaction(
                 product=self.invalid_product,
                 paid_amount=2,
-                change_given=0,
                 status=TransactionStatus.PENDING,
+                coins_in_machine=[],
             )
         self.assertIn(PRODUCT_ENTITY_REQUIRED_ERROR, str(context.exception))
 
@@ -61,8 +63,8 @@ class TestTransaction(unittest.TestCase):
             Transaction(
                 product=self.product,
                 paid_amount=2.0,
-                change_given=0.0,
                 status="invalid status",
+                coins_in_machine=[],
             )
         self.assertIn(TRANSACTION_STATUS_TYPE_ERROR, str(context.exception))
 
@@ -71,8 +73,8 @@ class TestTransaction(unittest.TestCase):
             Transaction(
                 product=self.product,
                 paid_amount=2,
-                change_given=2,
                 status=TransactionStatus.PENDING,
+                coins_in_machine=[],
             )
         self.assertIn(TRANSACTION_FLOAT_TYPE_ERROR, str(context.exception))
 
@@ -80,12 +82,11 @@ class TestTransaction(unittest.TestCase):
         transaction = Transaction(
             product=self.product,
             paid_amount=2.0,
-            change_given=0.0,
             status=TransactionStatus.PENDING,
+            coins_in_machine=[],
         )
         self.assertEqual(transaction.product, self.product)
         self.assertEqual(transaction.paid_amount, 2)
-        self.assertEqual(transaction.change_given, 0)
         self.assertEqual(transaction.status, TransactionStatus.PENDING)
         transaction.mark_as_completed()
         self.assertEqual(transaction.status, TransactionStatus.COMPLETED)
@@ -105,16 +106,27 @@ class TestVendingMachine(unittest.TestCase):
             expiration_date=datetime.date.today() + datetime.timedelta(days=10),
             bar_code="2222",
         )
+        self.will_expire_product = Product(
+            name="Fanta",
+            price=1.00,
+            expiration_date=datetime.date.today() + datetime.timedelta(days=1),
+            bar_code="3333",
+        )
 
         slot_queue_coke = PeekableProductsQueue([self.product_coke])
         self.slot_coke = ProductSlot(products=slot_queue_coke, code="A1")
 
-        self.vending_machine = VendingMachine(slots=[self.slot_coke])
+        self.coin_05_eur = Coin(denomination=0.05, currency="EUR")
+        self.coin_1_eur = Coin(denomination=1.00, currency="EUR")
+        self.vending_machine = VendingMachine(
+            slots=[self.slot_coke],
+            coins=[self.coin_1_eur, self.coin_05_eur, self.coin_05_eur],
+        )
 
-    def test_add_product_to_existing_slot(self):
-        self.vending_machine.add_product_to_slot(self.product_sprite, "A1")
-        slot = self.vending_machine.get_slot_by_code("A1")
-        self.assertEqual(slot.products.qsize(), 2)
+    def test_add_different_product_to_existing_slot(self):
+        with self.assertRaises(ValueError) as context:
+            self.vending_machine.add_product_to_slot(self.product_sprite, "A1")
+        self.assertIn(VENDING_MACHINE_ADD_PRODUCT_ERROR, str(context.exception))
 
     def test_add_product_to_new_slot(self):
         self.vending_machine.add_product_to_slot(self.product_sprite, "B2")
@@ -122,7 +134,13 @@ class TestVendingMachine(unittest.TestCase):
         self.assertIsNotNone(slot)
         self.assertEqual(slot.products.qsize(), 1)
 
-    def test_consume_product_item(self):
+    def test_transaction_with_change(self):
+        self.vending_machine.add_coin_to_transaction(
+            Coin(denomination=1.00, currency="EUR")
+        )
+        self.vending_machine.add_coin_to_transaction(
+            Coin(denomination=0.20, currency="EUR")
+        )
         self.vending_machine.consume_product_item(0)
         slot = self.vending_machine.get_slot_by_code("A1")
         self.assertEqual(slot.products.qsize(), 0)
@@ -136,3 +154,12 @@ class TestVendingMachine(unittest.TestCase):
         self.assertIn("A1", all_stock)
         self.assertEqual(all_stock["A1"][0], 1)
         self.assertEqual(all_stock["A1"][1], "Coke")
+
+    def test_expired_product_is_not_valid(self):
+        self.will_expire_product.expiration_date = (
+            datetime.date.today() - datetime.timedelta(days=1)
+        )
+        slot_queue = PeekableProductsQueue([self.will_expire_product])
+        slot = ProductSlot(products=slot_queue, code="A2")
+        self.vending_machine.slots.append(slot)
+        self.assertFalse(self.vending_machine.product_is_valid(1))
