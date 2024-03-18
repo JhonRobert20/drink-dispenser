@@ -112,14 +112,23 @@ class TestVendingMachine(unittest.TestCase):
             expiration_date=datetime.date.today() + datetime.timedelta(days=1),
             bar_code="3333",
         )
+        self.to_expensive_product = Product(
+            name="Fanta",
+            price=10.00,
+            expiration_date=datetime.date.today() + datetime.timedelta(days=1),
+            bar_code="4444",
+        )
 
         slot_queue_coke = PeekableProductsQueue([self.product_coke])
         self.slot_coke = ProductSlot(products=slot_queue_coke, code="A1")
+        self.slot_to_expensive = ProductSlot(
+            products=PeekableProductsQueue([self.to_expensive_product]), code="A2"
+        )
 
         self.coin_05_eur = Coin(denomination=0.05, currency="EUR")
         self.coin_1_eur = Coin(denomination=1.00, currency="EUR")
         self.vending_machine = VendingMachine(
-            slots=[self.slot_coke],
+            slots=[self.slot_coke, self.slot_to_expensive],
             coins=[self.coin_1_eur, self.coin_05_eur, self.coin_05_eur],
         )
 
@@ -144,6 +153,15 @@ class TestVendingMachine(unittest.TestCase):
         self.vending_machine.consume_product_item(0)
         slot = self.vending_machine.get_slot_by_code("A1")
         self.assertEqual(slot.products.qsize(), 0)
+        self.assertEqual(len(self.vending_machine.coins_actual_transaction), 0)
+        self.assertEqual(len(self.vending_machine.coins), 3)
+
+    def test_transaction_without_change(self):
+        self.vending_machine.consume_product_item(1)
+        slot = self.vending_machine.get_slot_by_code(self.slot_to_expensive.code)
+        self.assertEqual(slot.products.qsize(), 1)
+        self.assertEqual(len(self.vending_machine.coins_actual_transaction), 0)
+        self.assertEqual(len(self.vending_machine.coins), 3)
 
     def test_check_stock_by_code(self):
         stock_count = self.vending_machine.check_stock_by_code("A1")
@@ -160,6 +178,6 @@ class TestVendingMachine(unittest.TestCase):
             datetime.date.today() - datetime.timedelta(days=1)
         )
         slot_queue = PeekableProductsQueue([self.will_expire_product])
-        slot = ProductSlot(products=slot_queue, code="A2")
+        slot = ProductSlot(products=slot_queue, code="A3")
         self.vending_machine.slots.append(slot)
-        self.assertFalse(self.vending_machine.product_is_valid(1))
+        self.assertFalse(self.vending_machine.product_is_valid(2))
