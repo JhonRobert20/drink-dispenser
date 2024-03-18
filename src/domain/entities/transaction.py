@@ -1,6 +1,7 @@
 from typing import List
 
 from src.domain.constants import (
+    NOT_ENOUGH_COINS_ERROR,
     PRODUCT_ENTITY_REQUIRED_ERROR,
     TRANSACTION_FLOAT_TYPE_ERROR,
     TRANSACTION_STATUS_TYPE_ERROR,
@@ -70,9 +71,4 @@ class Transaction:
                 if total_change_given == change_amount:
                     return coins_to_return
 
-        # send alarm to the vending machine to refill the coins
-        # send alarm to the manager to give change to the customer
-        print("Not enough coins to give change")
-        print(total_change_given)
-        print(change_amount)
-        raise ValueError("Not enough coins to give change")
+        raise ValueError(NOT_ENOUGH_COINS_ERROR)
