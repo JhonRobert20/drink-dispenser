@@ -42,8 +42,8 @@ class VendingMachine:
 
     def check_can_expend(self, slot_index: int):
         if self.product_is_valid(slot_index):
-            coins_value = sum(
-                [coin.denomination for coin in self.coins_actual_transaction]
+            coins_value = round(
+                sum([coin.denomination for coin in self.coins_actual_transaction]), 2
             )
             if (
                 coins_value
@@ -69,6 +69,9 @@ class VendingMachine:
                 transaction.mark_as_error()
                 index_to_remove = [i for i in range(len(self.coins_actual_transaction))]
                 self.__remove_coins_from_machine(index_to_remove)
+        else:
+            index_to_remove = [i for i in range(len(self.coins_actual_transaction))]
+            self.__remove_coins_from_machine(index_to_remove)
 
     def __remove_coins_from_machine(self, coins_index_to_return: List[int]):
         ordered_coins_index = sorted(coins_index_to_return, reverse=True)
