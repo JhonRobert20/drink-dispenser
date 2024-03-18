@@ -57,14 +57,18 @@ class Transaction:
         change_amount = self.change_amount
         sorted_coins = sorted(
             ((coin.denomination, i) for i, coin in enumerate(coins_in_machine)),
-            reverse=False,
+            reverse=True,
         )
 
         coins_to_return = []
         total_change_given = 0.0
 
         for denomination, index in sorted_coins:
-            total_change_given += denomination
+            maybe_total = round(total_change_given + denomination, 2)
+            if maybe_total > change_amount:
+                continue
+
+            total_change_given = maybe_total
             coins_to_return.append(index)
 
             if total_change_given == change_amount:
