@@ -64,11 +64,10 @@ class Transaction:
         total_change_given = 0.0
 
         for denomination, index in sorted_coins:
-            while total_change_given + denomination <= change_amount:
-                total_change_given += denomination
-                coins_to_return.append(index)
+            total_change_given += denomination
+            coins_to_return.append(index)
 
-                if total_change_given == change_amount:
-                    return coins_to_return
+            if total_change_given == change_amount:
+                return coins_to_return
 
         raise ValueError(NOT_ENOUGH_COINS_ERROR)
