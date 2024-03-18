@@ -57,12 +57,20 @@ class VendingMachine:
             transaction = Transaction(
                 product_to_expend, paid_amount, TransactionStatus.PENDING, self.coins
             )
-            coins_index_to_return = transaction.calculate_change_to_give()
-            ordered_coins_index = sorted(coins_index_to_return, reverse=True)
-            for index in ordered_coins_index:
-                self.coins.pop(index)
-            self.coins_actual_transaction = []
-            transaction.mark_as_completed()
+            try:
+                coins_index_to_return = transaction.calculate_change_to_give()
+                self.__remove_coins_from_machine(coins_index_to_return)
+                transaction.mark_as_completed()
+            except ValueError:
+                transaction.mark_as_error()
+                index_to_remove = [i for i in range(len(self.coins_actual_transaction))]
+                self.__remove_coins_from_machine(index_to_remove)
+
+    def __remove_coins_from_machine(self, coins_index_to_return: List[int]):
+        ordered_coins_index = sorted(coins_index_to_return, reverse=True)
+        for index in ordered_coins_index:
+            self.coins.pop(index)
+        self.coins_actual_transaction = []
 
     def add_coin_to_transaction(self, coin: Coin):
         self.coins.append(coin)
