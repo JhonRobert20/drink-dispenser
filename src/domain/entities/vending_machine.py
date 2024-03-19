@@ -8,15 +8,10 @@ from src.domain.constants import (
     TransactionStatus,
 )
 from src.domain.entities.product import Product
+from src.domain.entities.product_slot import ProductSlot
 from src.domain.entities.transaction import Transaction
 from src.domain.utils import PeekableProductsQueue
 from src.domain.value_objects.coin import Coin
-
-
-class ProductSlot:
-    def __init__(self, products: PeekableProductsQueue, code: str):
-        self.products = products
-        self.code = code
 
 
 class VendingMachine:
