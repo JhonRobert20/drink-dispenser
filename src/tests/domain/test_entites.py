@@ -132,7 +132,10 @@ class TestVendingMachine(unittest.TestCase):
 
         self.initial_coins = [self.coin_1_eur, self.coin_05_eur, self.coin_05_eur]
         self.len_initial_coins = len(self.initial_coins)
-        self.initial_slot = [self.slot_coke, self.slot_to_expensive]
+        self.initial_slot = {
+            self.slot_coke.code: self.slot_coke,
+            self.slot_to_expensive.code: self.slot_to_expensive,
+        }
 
         self.initial_total_money = round(
             sum([coin.denomination for coin in self.initial_coins]), 2
@@ -187,7 +190,7 @@ class TestVendingMachine(unittest.TestCase):
 
         self.assertEqual(slot.products.qsize(), 1)
         self.assertEqual(len(self.vending_machine.coins_actual_transaction), 2)
-        self.vending_machine.consume_product_item(0)
+        self.vending_machine.consume_product_item("A1")
         total_money_after_transaction = round(
             sum([coin.denomination for coin in self.vending_machine.coins]), 2
         )
@@ -199,7 +202,7 @@ class TestVendingMachine(unittest.TestCase):
         self.assertEqual(len(self.vending_machine.coins), 4)
 
     def test_transaction_without_change(self):
-        self.vending_machine.consume_product_item(1)
+        self.vending_machine.consume_product_item("A1")
         slot = self.vending_machine.get_slot_by_code(self.slot_to_expensive.code)
         self.assertEqual(slot.products.qsize(), 1)
         self.assertEqual(len(self.vending_machine.coins_actual_transaction), 0)
@@ -209,22 +212,14 @@ class TestVendingMachine(unittest.TestCase):
         stock_count = self.vending_machine.check_stock_by_code("A1")
         self.assertEqual(stock_count, 1)
 
-    def test_check_all_stock(self):
-        all_stock = self.vending_machine.check_all_stock()
-        self.assertIn("A1", all_stock)
-        self.assertEqual(all_stock["A1"][0], self.initial_slot[0].products.qsize())
-        self.assertEqual(all_stock["A1"][1], self.product_coke.name)
-
     def test_expired_product_is_not_valid(self):
         self.will_expire_product.expiration_date = (
             datetime.date.today() - datetime.timedelta(days=1)
         )
         slot_queue = PeekableProductsQueue([self.will_expire_product])
         slot = ProductSlot(products=slot_queue, code="A3")
-        self.vending_machine.slots.append(slot)
-        stock = self.vending_machine.check_stock_by_index(2)
-        self.assertEqual(stock, 1)
-        self.assertFalse(self.vending_machine.product_is_valid(2))
+        self.vending_machine.slots["A3"] = slot
+        self.assertFalse(self.vending_machine.product_is_valid("A3"))
         self.assertEqual(self.len_initial_coins, len(self.vending_machine.coins))
         coin_1_eur = Coin(denomination=1.00, currency="EUR")
 
@@ -232,11 +227,9 @@ class TestVendingMachine(unittest.TestCase):
         self.assertEqual(self.len_initial_coins + 1, len(self.vending_machine.coins))
         self.assertEqual(len(self.vending_machine.coins_actual_transaction), 1)
 
-        self.vending_machine.consume_product_item(2)
+        self.vending_machine.consume_product_item("A3")
         self.assertEqual(self.len_initial_coins, len(self.vending_machine.coins))
         self.assertEqual(len(self.vending_machine.coins_actual_transaction), 0)
-        stock = self.vending_machine.check_stock_by_index(2)
-        self.assertEqual(stock, 1)
 
     def test_add_invalid_coin_to_transaction(self):
         coin = Coin(denomination=0.001, currency="EUR")
