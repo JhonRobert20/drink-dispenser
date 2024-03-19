@@ -4,10 +4,10 @@ from pymongo import MongoClient, errors
 
 
 class MongodbManager:
-    def __init__(self, host="localhost", port=27017, bd_name="drink_dispenser"):
+    def __init__(self, host="localhost", port="27017", bd_name="drink_dispenser"):
         self.logger = logging.getLogger("mongo")
         self.host = host
-        self.port = port
+        self.port = int(port)
         self.mongo_client = self.create_connection()
         self.mongo_db = self.mongo_client[bd_name]
 
@@ -34,17 +34,26 @@ class MongodbManager:
             self.logger.error(f"Collection could not be fetched - {e}")
             return None
 
-    def insert_one(self, data, coll_name):
-        self.logger.debug(f"Inserting document into '{coll_name}'")
+    def upsert_document(self, data, coll_name, unique_field_name):
         collection = self.get_collection(coll_name)
+        query = {unique_field_name: data[unique_field_name]}
+
         try:
-            id_code = collection.insert_one(data)
+            existing_document = collection.find_one(query)
+            if existing_document:
+                collection.delete_one(query)
+
+            result = collection.insert_one(data)
+            self.logger.info(
+                f"New document inserted into '{coll_name}' with ID {result.inserted_id}"
+            )
+            return str(result.inserted_id)
+
         except errors.PyMongoError as e:
             self.logger.error(
-                f"Document {data} could not be inserted into '{coll_name}' - {e}"
+                f"Document {data} could not be upserted into '{coll_name}' - {e}"
             )
             return None
-        return str(id_code.inserted_id)
 
     def insert_many(self, data, coll_name):
         self.logger.debug(f"Inserting many documents into {coll_name}")
@@ -123,3 +132,18 @@ class MongodbManager:
                 f"Document could not be removed using following query {query}- {e}"
             )
             return None
+
+    def drop_collection(self, coll_name):
+        try:
+            if "test" in self.mongo_db.name:
+                self.mongo_db.drop_collection(coll_name)
+                return True
+            return False
+        except errors.PyMongoError as e:
+            self.logger.error(f"Collection could not be dropped - {e}")
+            return None
+
+    def close_connection(self):
+        self.mongo_client.close()
+        self.logger.info("MongoDB connection closed")
+        return True
