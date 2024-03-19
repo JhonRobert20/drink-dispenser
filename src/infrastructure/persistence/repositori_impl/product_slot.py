@@ -14,8 +14,10 @@ class ProductSlotRepositoryImpl(IProductSlotRepository):
 
     def save_product_slot(self, product_slot: ProductSlot) -> None:
         product_slot_model = ProductSlotModel(product_slot)
-        self.mongodb_manager.insert_one(
-            product_slot_model, coll_name=self.collection_name
+        self.mongodb_manager.upsert_document(
+            product_slot_model.to_dict(),
+            coll_name=self.collection_name,
+            unique_field_name="code",
         )
 
     def get_product_slot_by_code(self, code: str) -> Optional[ProductSlot]:
