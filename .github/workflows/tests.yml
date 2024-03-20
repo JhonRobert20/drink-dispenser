@@ -29,6 +29,16 @@ jobs:
       - name: Lint and format with pre-commit
         run: |
           pre-commit run --all-files
+
+      - name: Mongodb service
+        uses: supercharge/mongodb-github-action@1.10.0
+        with:
+          mongodb-version: '4.2'
+          mongodb-replica-set: test-rs
+          mongodb-port: 27017
+
       - name: Test with unittest
+        env:
+          MONGO_DB_HOST: mongodb://localhost:27017/
         run: |
           pytest
