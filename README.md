@@ -43,3 +43,10 @@ $ docker-compose up
 ```bash
 $ docker exec python_container pytest
 ```
+
+## Considerations
+
+- The project is not finished
+- The project was soo interesting to do
+- Was my very first time implementing Hexagonal Architecture and DDD, so I learned a lot
+- Please any feedback is welcome
