@@ -36,16 +36,8 @@ Is not possible to dispense a product to an employee
 ```bash
 $ docker-compose up
 ```
-### Add the environment
-```bash
-$ python -m venv venv
-$ source venv/bin/activate
-```
-### Install the dependencies
-```bash
-$ pip install -r requirements.txt
-```
+
 ### Run the tests
 ```bash
-$ pytest
+$ docker exec python_container pytest
 ```
