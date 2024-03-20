@@ -1,12 +1,13 @@
 import logging
+import os
 
 from pymongo import MongoClient, errors
 
 
 class MongodbManager:
-    def __init__(self, host="localhost", port="27017", bd_name="drink_dispenser"):
+    def __init__(self, port="27017", bd_name="drink_dispenser"):
         self.logger = logging.getLogger("mongo")
-        self.host = host
+        self.host = os.environ.get("MONGO_DB_HOST")
         self.port = int(port)
         self.mongo_client = self.create_connection()
         self.mongo_db = self.mongo_client[bd_name]
