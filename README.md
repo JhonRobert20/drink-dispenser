@@ -29,6 +29,8 @@ Is not possible to dispense a product to an employee
 
 - Add logic to send async events to an LCD screen
 - Implement the connection between the application and infrastructure
+- Handle all the events that the application can receive
+- Add logs to the application
 
 ## How to run the tests
 ### First up the infrastructure
