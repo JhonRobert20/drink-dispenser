@@ -24,6 +24,7 @@ class VendingMachine:
         self.slots = slots
         self.coins = coins
         self.coins_actual_transaction = []
+        self.actual_transaction = None
 
     def add_product_to_slot(self, product: Product, slot_code: str):
         slot: ProductSlot = self.get_slot_by_code(slot_code)
@@ -38,45 +39,49 @@ class VendingMachine:
             self.slots[slot_code] = ProductSlot(new_products_queue, slot_code)
             return self.slots[slot_code]
 
-    def check_product_availability(self, slot_code: str):
+    def __get_product_by_slot_code(self, slot_code: str) -> Optional[Product]:
         slot = self.get_slot_by_code(slot_code)
-        if not slot:
-            return False
+        if slot:
+            return slot.products.get_without_consume()
+        return None
 
-        product = slot.products.get_without_consume()
-        return product and product.is_valid()
+    def check_product_availability(self, slot_code: str):
+        product = self.__get_product_by_slot_code(slot_code)
+        return product if product and product.is_valid() else None
 
-    def check_can_expend(self, slot_code: str):
-        if self.check_product_availability(slot_code):
-            slot = self.get_slot_by_code(slot_code)
-            coins_value = round(
-                sum([coin.denomination for coin in self.coins_actual_transaction]), 2
-            )
-            if coins_value >= slot.products.get_without_consume().price:
-                return True
-        return False
+    def select_product(self, slot_code: str):
+        product = self.__get_product_by_slot_code(slot_code)
+        if not product:
+            raise ValueError("Product not found")
+        self.actual_transaction = Transaction(
+            product, 0, TransactionStatus.PENDING, self.coins
+        )
+        return self.actual_transaction
 
     def dispense_product(self, slot_code: str):
-        if self.check_can_expend(slot_code):
-            slot = self.get_slot_by_code(slot_code)
-            product_to_expend = slot.products.get_if_exists()
-            paid_amount = sum(
-                [coin.denomination for coin in self.coins_actual_transaction]
-            )
-            transaction = Transaction(
-                product_to_expend, paid_amount, TransactionStatus.PENDING, self.coins
-            )
-            try:
-                coins_index_to_return = transaction.validate_money()
-                self.__remove_coins_from_machine(coins_index_to_return)
-                transaction.mark_as_completed()
-            except ValueError:
-                transaction.mark_as_error()
-                index_to_remove = [i for i in range(len(self.coins_actual_transaction))]
-                self.__remove_coins_from_machine(index_to_remove)
-        else:
-            index_to_remove = [i for i in range(len(self.coins_actual_transaction))]
-            self.__remove_coins_from_machine(index_to_remove)
+        product_to_expend = self.check_product_availability(slot_code)
+        if not product_to_expend:
+            return self.refund_coins()
+
+        slot = self.get_slot_by_code(slot_code)
+        paid_amount = round(
+            sum([coin.denomination for coin in self.coins_actual_transaction]), 2
+        )
+        transaction = Transaction(
+            product_to_expend, paid_amount, TransactionStatus.PENDING, self.coins
+        )
+        try:
+            coins_index_to_return = transaction.validate_money()
+            slot.products.get_if_exists()
+            self.__remove_coins_from_machine(coins_index_to_return)
+            return transaction.mark_as_completed()
+        except ValueError:
+            return self.refund_coins()
+
+    def refund_coins(self):
+        index_to_remove = [i for i in range(len(self.coins_actual_transaction))]
+        self.__remove_coins_from_machine(index_to_remove)
+        return TransactionStatus.REFUNDED
 
     def __remove_coins_from_machine(self, coins_index_to_return: List[int]):
         ordered_coins_index = sorted(coins_index_to_return, reverse=True)

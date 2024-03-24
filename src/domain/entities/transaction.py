@@ -25,7 +25,7 @@ class Transaction:
         if not isinstance(status, TransactionStatus):
             raise ValueError(TRANSACTION_STATUS_TYPE_ERROR)
 
-        if not isinstance(paid_amount, float):
+        if not isinstance(paid_amount, float) and paid_amount != 0:
             raise ValueError(TRANSACTION_FLOAT_TYPE_ERROR)
 
         self.product = product
@@ -39,20 +39,28 @@ class Transaction:
 
     def mark_as_completed(self):
         self.status = TransactionStatus.COMPLETED
+        return self.status
 
     def mark_as_pending(self):
         self.status = TransactionStatus.PENDING
+        return self.status
 
     def mark_as_error(self):
         self.status = TransactionStatus.ERROR
+        return self.status
 
     def mark_as_cancelled(self):
         self.status = TransactionStatus.CANCELLED
+        return self.status
 
     def mark_as_refunded(self):
         self.status = TransactionStatus.REFUNDED
+        return self.status
 
     def validate_money(self) -> List[int]:
+        if self.change_amount < 0:
+            raise ValueError(NOT_ENOUGH_COINS_ERROR)
+
         coins_in_machine = self.coins_in_machine
         change_amount = self.change_amount
         sorted_coins = sorted(
