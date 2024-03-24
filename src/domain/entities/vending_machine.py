@@ -18,7 +18,19 @@ from src.domain.value_objects.coin import Coin
 
 
 class VendingMachine:
-    def __init__(self, slots: Dict[str, ProductSlot], coins: List[Coin]):
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+            cls._instance.__initialized = False
+        return cls._instance
+
+    def __init__(self, slots: Optional[Dict[str, ProductSlot]], coins: List[Coin]):
+        if self.__initialized:
+            return
+        self.__initialized = True
+
         if not isinstance(slots, dict):
             raise ValueError(SLOT_ENTITY_REQUIRED_ERROR)
         if not isinstance(coins, list):
