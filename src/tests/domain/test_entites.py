@@ -25,7 +25,7 @@ class TestProduct(unittest.TestCase):
 
         self.assertIn(PRODUCT_EXPIRATION_FORMAT_ERROR, str(context.exception))
 
-    def test_product_is_valid_with_future_expiration_date(self):
+    def test_check_product_availability_with_future_expiration_date(self):
         future_date = datetime.date.today() + datetime.timedelta(days=10)
         product = Product(
             name="Coke", price=2, expiration_date=future_date, bar_code="1234"
@@ -139,7 +139,7 @@ class TestVendingMachine(TestBase):
 
         self.assertEqual(slot.products.qsize(), 1)
         self.assertEqual(len(self.vending_machine.coins_actual_transaction), 2)
-        self.vending_machine.consume_product_item("A1")
+        self.vending_machine.dispense_product("A1")
         total_money_after_transaction = round(
             sum([coin.denomination for coin in self.vending_machine.coins]), 2
         )
@@ -151,7 +151,7 @@ class TestVendingMachine(TestBase):
         self.assertEqual(len(self.vending_machine.coins), 4)
 
     def test_transaction_without_change(self):
-        self.vending_machine.consume_product_item("A1")
+        self.vending_machine.dispense_product("A1")
         slot = self.vending_machine.get_slot_by_code(self.slot_to_expensive.code)
         self.assertEqual(slot.products.qsize(), 1)
         self.assertEqual(len(self.vending_machine.coins_actual_transaction), 0)
@@ -168,7 +168,7 @@ class TestVendingMachine(TestBase):
         slot_queue = PeekableProductsQueue([self.will_expire_product])
         slot = ProductSlot(products=slot_queue, code="A3")
         self.vending_machine.slots["A3"] = slot
-        self.assertFalse(self.vending_machine.product_is_valid("A3"))
+        self.assertFalse(self.vending_machine.check_product_availability("A3"))
         self.assertEqual(self.len_initial_coins, len(self.vending_machine.coins))
         coin_1_eur = Coin(denomination=1.00, currency="EUR")
 
@@ -176,7 +176,7 @@ class TestVendingMachine(TestBase):
         self.assertEqual(self.len_initial_coins + 1, len(self.vending_machine.coins))
         self.assertEqual(len(self.vending_machine.coins_actual_transaction), 1)
 
-        self.vending_machine.consume_product_item("A3")
+        self.vending_machine.dispense_product("A3")
         self.assertEqual(self.len_initial_coins, len(self.vending_machine.coins))
         self.assertEqual(len(self.vending_machine.coins_actual_transaction), 0)
 

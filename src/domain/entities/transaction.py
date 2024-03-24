@@ -52,7 +52,7 @@ class Transaction:
     def mark_as_refunded(self):
         self.status = TransactionStatus.REFUNDED
 
-    def calculate_change_to_give(self) -> List[int]:
+    def validate_money(self) -> List[int]:
         coins_in_machine = self.coins_in_machine
         change_amount = self.change_amount
         sorted_coins = sorted(

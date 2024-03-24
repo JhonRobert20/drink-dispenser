@@ -38,7 +38,7 @@ class VendingMachine:
             self.slots[slot_code] = ProductSlot(new_products_queue, slot_code)
             return self.slots[slot_code]
 
-    def product_is_valid(self, slot_code: str):
+    def check_product_availability(self, slot_code: str):
         slot = self.get_slot_by_code(slot_code)
         if not slot:
             return False
@@ -47,7 +47,7 @@ class VendingMachine:
         return product and product.is_valid()
 
     def check_can_expend(self, slot_code: str):
-        if self.product_is_valid(slot_code):
+        if self.check_product_availability(slot_code):
             slot = self.get_slot_by_code(slot_code)
             coins_value = round(
                 sum([coin.denomination for coin in self.coins_actual_transaction]), 2
@@ -56,7 +56,7 @@ class VendingMachine:
                 return True
         return False
 
-    def consume_product_item(self, slot_code: str):
+    def dispense_product(self, slot_code: str):
         if self.check_can_expend(slot_code):
             slot = self.get_slot_by_code(slot_code)
             product_to_expend = slot.products.get_if_exists()
@@ -67,7 +67,7 @@ class VendingMachine:
                 product_to_expend, paid_amount, TransactionStatus.PENDING, self.coins
             )
             try:
-                coins_index_to_return = transaction.calculate_change_to_give()
+                coins_index_to_return = transaction.validate_money()
                 self.__remove_coins_from_machine(coins_index_to_return)
                 transaction.mark_as_completed()
             except ValueError:
