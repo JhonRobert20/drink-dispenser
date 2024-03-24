@@ -60,4 +60,9 @@ class TestBase(unittest.TestCase):
             slots=self.initial_slot,
             coins=self.initial_coins,
         )
+        self.vending_machine.coins = self.initial_coins
+        self.vending_machine.actual_transaction = None
+        self.vending_machine.timer = None
+        self.vending_machine.slots = self.initial_slot
+        self.vending_machine.coins_actual_transaction = []
         self.mongo_db = MongodbManager(bd_name="test_drink_dispenser")
