@@ -3,6 +3,7 @@ from typing import Dict, List, Optional
 from src.domain.constants import (
     COIN_ENTITY_REQUIRED_ERROR,
     INVALID_COIN_ERROR,
+    PRODUCT_NOT_FOUND_ERROR,
     SLOT_ENTITY_REQUIRED_ERROR,
     VENDING_MACHINE_ADD_PRODUCT_ERROR,
     TransactionStatus,
@@ -24,12 +25,13 @@ class VendingMachine:
         self.slots = slots
         self.coins = coins
         self.coins_actual_transaction = []
-        self.actual_transaction = None
+        self.actual_transaction: Optional[Transaction] = None
 
     def add_product_to_slot(self, product: Product, slot_code: str):
         slot: ProductSlot = self.get_slot_by_code(slot_code)
         if slot:
-            if slot.products.get_without_consume().bar_code != product.bar_code:
+            next_product = slot.products.get_without_consume()
+            if next_product and next_product.bar_code != product.bar_code:
                 raise ValueError(VENDING_MACHINE_ADD_PRODUCT_ERROR)
             slot.products.put(product)
             return slot
@@ -52,29 +54,39 @@ class VendingMachine:
     def select_product(self, slot_code: str):
         product = self.__get_product_by_slot_code(slot_code)
         if not product:
-            raise ValueError("Product not found")
+            raise ValueError(PRODUCT_NOT_FOUND_ERROR)
+
         self.actual_transaction = Transaction(
             product, 0, TransactionStatus.PENDING, self.coins
         )
         return self.actual_transaction
 
+    def reject_actual_transaction(self):
+        status = self.actual_transaction.mark_as_cancelled()
+        self.refund_coins()
+        self.actual_transaction = None
+        return status
+
     def dispense_product(self, slot_code: str):
         product_to_expend = self.check_product_availability(slot_code)
         if not product_to_expend:
+            # todo: send async message to admin
             return self.refund_coins()
 
         slot = self.get_slot_by_code(slot_code)
         paid_amount = round(
             sum([coin.denomination for coin in self.coins_actual_transaction]), 2
         )
-        transaction = Transaction(
+        self.actual_transaction = Transaction(
             product_to_expend, paid_amount, TransactionStatus.PENDING, self.coins
         )
         try:
-            coins_index_to_return = transaction.validate_money()
+            coins_index_to_return = self.actual_transaction.validate_money()
             slot.products.get_if_exists()
             self.__remove_coins_from_machine(coins_index_to_return)
-            return transaction.mark_as_completed()
+            status = self.actual_transaction.mark_as_completed()
+            self.actual_transaction = None
+            return status
         except ValueError:
             return self.refund_coins()
 

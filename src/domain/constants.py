@@ -11,6 +11,7 @@ NOT_ENOUGH_COINS_ERROR = "Not enough coins to give change, returning paid amount
 INVALID_COIN_ERROR = "Invalid coin denomination or currency"
 SLOT_ENTITY_REQUIRED_ERROR = "Slots must be a dictionary"
 COIN_ENTITY_REQUIRED_ERROR = "Coins must be a list of Coin instances"
+PRODUCT_NOT_FOUND_ERROR = "Product not found"
 
 
 class TransactionStatus(Enum):
