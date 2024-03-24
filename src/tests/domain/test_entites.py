@@ -1,4 +1,5 @@
 import datetime
+import time
 import unittest
 
 from src.domain.constants import (
@@ -7,6 +8,7 @@ from src.domain.constants import (
     PRODUCT_EXPIRATION_FORMAT_ERROR,
     TRANSACTION_FLOAT_TYPE_ERROR,
     TRANSACTION_STATUS_TYPE_ERROR,
+    TRANSACTION_TIMER_NEEDED_ERROR,
     VENDING_MACHINE_ADD_PRODUCT_ERROR,
     TransactionStatus,
 )
@@ -190,3 +192,19 @@ class TestVendingMachine(TestBase):
         self.assertIn(INVALID_COIN_ERROR, str(context.exception))
         self.assertEqual(len(self.vending_machine.coins_actual_transaction), 0)
         self.assertEqual(len(self.vending_machine.coins), len(self.initial_coins))
+
+    def test_reject_actual_transaction(self):
+        with self.assertRaises(ValueError) as context:
+            self.vending_machine.reject_actual_transaction()
+        self.assertIn(TRANSACTION_TIMER_NEEDED_ERROR, str(context.exception))
+
+    def test_select_product(self):
+        transaction = self.vending_machine.select_product("A1")
+        self.assertEqual(len(self.vending_machine.coins_actual_transaction), 0)
+        self.vending_machine.add_coin_to_transaction(
+            Coin(denomination=1.00, currency="EUR")
+        )
+        self.assertEqual(len(self.vending_machine.coins_actual_transaction), 1)
+        self.assertEqual(transaction.status, TransactionStatus.PENDING)
+        time.sleep(5)
+        self.assertEqual(len(self.vending_machine.coins_actual_transaction), 0)

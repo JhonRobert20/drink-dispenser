@@ -1,3 +1,4 @@
+from threading import Timer
 from typing import Dict, List, Optional
 
 from src.domain.constants import (
@@ -5,6 +6,7 @@ from src.domain.constants import (
     INVALID_COIN_ERROR,
     PRODUCT_NOT_FOUND_ERROR,
     SLOT_ENTITY_REQUIRED_ERROR,
+    TRANSACTION_TIMER_NEEDED_ERROR,
     VENDING_MACHINE_ADD_PRODUCT_ERROR,
     TransactionStatus,
 )
@@ -26,6 +28,7 @@ class VendingMachine:
         self.coins = coins
         self.coins_actual_transaction = []
         self.actual_transaction: Optional[Transaction] = None
+        self.timer: Optional[Timer] = None
 
     def add_product_to_slot(self, product: Product, slot_code: str):
         slot: ProductSlot = self.get_slot_by_code(slot_code)
@@ -56,14 +59,23 @@ class VendingMachine:
         if not product:
             raise ValueError(PRODUCT_NOT_FOUND_ERROR)
 
+        self.__start_timer()
         self.actual_transaction = Transaction(
             product, 0, TransactionStatus.PENDING, self.coins
         )
         return self.actual_transaction
 
+    def __start_timer(self):
+        self.timer = Timer(5, self.__refund_coins_with_timer)
+        self.timer.start()
+
     def reject_actual_transaction(self):
+        if not self.actual_transaction or not self.timer:
+            raise ValueError(TRANSACTION_TIMER_NEEDED_ERROR)
+
         status = self.actual_transaction.mark_as_cancelled()
         self.refund_coins()
+        self.timer.cancel()
         self.actual_transaction = None
         return status
 
@@ -89,6 +101,10 @@ class VendingMachine:
             return status
         except ValueError:
             return self.refund_coins()
+
+    def __refund_coins_with_timer(self):
+        # Todo: add logs
+        return self.refund_coins()
 
     def refund_coins(self):
         index_to_remove = [i for i in range(len(self.coins_actual_transaction))]
