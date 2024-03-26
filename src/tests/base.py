@@ -80,7 +80,7 @@ class TestBase(unittest.TestCase):
         self.vending_machine.slots = {}
         self.vending_machine.coins_actual_transaction = []
         self.vending_machine.coins = []
-        self.vending_machine.actual_product = None
+        self.vending_machine.actual_slot_code = None
 
 
 class TestBaseMqtt(TestBase):

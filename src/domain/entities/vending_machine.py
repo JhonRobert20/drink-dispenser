@@ -43,7 +43,7 @@ class VendingMachine:
         self.actual_transaction: Optional[Transaction] = None
         self.timer: Optional[Timer] = None
         self.machine_status = MachineStatus.AVAILABLE
-        self.actual_product: Optional[Product] = None
+        self.actual_slot_code: Optional[str] = None
 
     def add_product_to_slot(self, product: Product, slot_code: str) -> ProductSlot:
         self.machine_status = MachineStatus.BUSY
@@ -84,7 +84,7 @@ class VendingMachine:
         self.actual_transaction = Transaction(
             product, 0, TransactionStatus.PENDING, self.coins
         )
-        self.actual_product = product
+        self.actual_slot_code = slot_code
         return product.price
 
     def __start_timer(self):

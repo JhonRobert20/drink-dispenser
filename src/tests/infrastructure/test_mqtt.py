@@ -56,7 +56,7 @@ class MqttIntegrationTest(TestBaseMqtt):
         )
 
     def test_reject_transaction_no_product(self):
-        self.vending_machine.actual_product = None
+        self.vending_machine.actual_slot_code = None
         self.client.publish("vending_machine/reject_transaction", "")
         assert (
             self.vending_machine.get_machine_status() == MachineStatus.AVAILABLE.value

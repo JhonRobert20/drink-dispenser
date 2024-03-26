@@ -20,7 +20,7 @@ class AddCoinHandler:
 
     def handle(self, payload):
         self.logger.info("Handling add coin")
-        if self.vending_machine.actual_product is None:
+        if self.vending_machine.actual_slot_code is None:
             self.logger.error("No product selected")
             self.event_publisher.publish("lcd/product", "No product selected.")
             return
