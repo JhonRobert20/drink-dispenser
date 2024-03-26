@@ -83,7 +83,7 @@ class VendingMachine:
         self.actual_transaction = Transaction(
             product, 0, TransactionStatus.PENDING, self.coins
         )
-        return self.actual_transaction
+        return product.price
 
     def __start_timer(self):
         self.timer = Timer(5, self.__refund_coins_with_timer)

@@ -1,6 +1,7 @@
 import time
 import unittest
 
+from src.domain.constants import MachineStatus
 from src.infrastructure.persistence.repositori_impl.product_slot import (
     ProductSlotRepositoryImpl,
 )
@@ -35,6 +36,24 @@ class MqttIntegrationTest(TestBaseMqtt):
 
     def test_check_machine_status(self):
         self.client.publish("vending_machine/consult_status", "")
+
+    def test_select_product(self):
+        self.client.publish(
+            "vending_machine/add",
+            '{"product":'
+            '{"name": "Coke", "price": 2,'
+            ' "expiration_date": "2023-12-31", "bar_code": "1234"},'
+            '"slot_code": "B4"}',
+        )
+
+        time.sleep(1)
+        self.client.publish("vending_machine/selections", "B4")
+        time.sleep(1)
+        assert self.vending_machine.get_machine_status() == MachineStatus.BUSY.value
+        time.sleep(4)
+        assert (
+            self.vending_machine.get_machine_status() == MachineStatus.AVAILABLE.value
+        )
 
 
 if __name__ == "__main__":

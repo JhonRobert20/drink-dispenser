@@ -199,12 +199,17 @@ class TestVendingMachine(TestBase):
         self.assertIn(TRANSACTION_TIMER_NEEDED_ERROR, str(context.exception))
 
     def test_select_product(self):
-        transaction = self.vending_machine.select_product("A1")
+        product_price = self.vending_machine.select_product("A1")
+        self.assertEqual(
+            product_price, self.slot_coke.products.get_without_consume().price
+        )
         self.assertEqual(len(self.vending_machine.coins_actual_transaction), 0)
         self.vending_machine.add_coin_to_transaction(
             Coin(denomination=1.00, currency="EUR")
         )
         self.assertEqual(len(self.vending_machine.coins_actual_transaction), 1)
-        self.assertEqual(transaction.status, TransactionStatus.PENDING)
+        self.assertEqual(
+            self.vending_machine.actual_transaction.status, TransactionStatus.PENDING
+        )
         time.sleep(5)
         self.assertEqual(len(self.vending_machine.coins_actual_transaction), 0)
