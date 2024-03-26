@@ -10,7 +10,6 @@ from src.infrastructure.config.db_connection import MongodbManager
 from src.infrastructure.mqtt.mqtt_client import start_and_configure_mqtt_client
 
 logging.basicConfig(level=logging.DEBUG, filename="test.log", filemode="w")
-logger = logging.getLogger("TestMqtt")
 
 
 class TestBase(unittest.TestCase):
@@ -71,6 +70,7 @@ class TestBase(unittest.TestCase):
         self.vending_machine.slots = self.initial_slot
         self.vending_machine.coins_actual_transaction = []
         self.mongo_db = MongodbManager(bd_name="test_drink_dispenser")
+        self.logger = logging.getLogger("TestBase")
 
     def tearDown(self):
         self.mongo_db.drop_collection("product_slots")
@@ -83,7 +83,7 @@ class TestBaseMqtt(TestBase):
         super().setUp()
 
         self.client = start_and_configure_mqtt_client(
-            logger,
+            self.logger,
             self.mongo_db,
             vending_machine=self.vending_machine,
         )

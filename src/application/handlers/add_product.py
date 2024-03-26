@@ -22,9 +22,6 @@ class AddProductHandler:
         )
         self.event_publisher = event_publisher
 
-    def set_event_publisher(self, event_publisher):
-        self.event_publisher = event_publisher
-
     def handle(self, payload):
         self.logger.info("Handling add product")
         data = json.loads(payload)

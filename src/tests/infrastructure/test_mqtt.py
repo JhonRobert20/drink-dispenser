@@ -30,6 +30,9 @@ class MqttIntegrationTest(TestBaseMqtt):
         self.assertEqual(stock_count, 1)
         self.assertEqual(len(product_slots), 1)
 
+    def test_consult_stock(self):
+        self.client.publish("vending_machine/consult_stock", "")
+
 
 if __name__ == "__main__":
     unittest.main()

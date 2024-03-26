@@ -150,3 +150,12 @@ class VendingMachine:
         if slot_code in self.slots:
             return self.slots[slot_code].products.qsize()
         return 0
+
+    def list_product_stock(self):
+        return {
+            slot_code: {
+                "quantity": slot.products.qsize(),
+                "product": slot.products.get_name_without_consume(),
+            }
+            for slot_code, slot in self.slots.items()
+        }
