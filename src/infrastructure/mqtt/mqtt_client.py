@@ -70,7 +70,7 @@ def start_and_configure_mqtt_client(
             mqtt_client.on_message = on_message
 
     mqtt_client.on_connect = on_connect
-    mqtt_client.connect(host=broker, port=port, keepalive=60)
+    mqtt_client.connect(host=broker, port=int(port), keepalive=60)
     mqtt_client.enable_logger(logger)
     subscribe_topics(mqtt_client)
     mqtt_client.loop_start()
