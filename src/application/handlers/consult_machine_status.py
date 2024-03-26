@@ -1,6 +1,6 @@
 import logging
 
-from src.application.commands.chec_vending_machine_status import (
+from src.application.commands.check_vending_machine_status import (
     CheckVendingMachineCommand,
 )
 from src.domain.entities.vending_machine import VendingMachine
