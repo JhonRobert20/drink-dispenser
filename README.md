@@ -51,3 +51,6 @@ Consult stock of a product
 
 Add more products to the dispenser and other logs
 ![add_products](https://github.com/JhonRobert20/drink-dispenser/blob/main/docs/general_logs.png)
+
+Consult machine status
+![add_products](https://github.com/JhonRobert20/drink-dispenser/blob/main/docs/consult_status.png)

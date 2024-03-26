@@ -33,6 +33,9 @@ class MqttIntegrationTest(TestBaseMqtt):
     def test_consult_stock(self):
         self.client.publish("vending_machine/consult_stock", "")
 
+    def test_check_machine_status(self):
+        self.client.publish("vending_machine/consult_status", "")
+
 
 if __name__ == "__main__":
     unittest.main()

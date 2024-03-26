@@ -8,6 +8,7 @@ from src.domain.constants import (
     SLOT_ENTITY_REQUIRED_ERROR,
     TRANSACTION_TIMER_NEEDED_ERROR,
     VENDING_MACHINE_ADD_PRODUCT_ERROR,
+    MachineStatus,
     TransactionStatus,
 )
 from src.domain.entities.product import Product
@@ -41,19 +42,24 @@ class VendingMachine:
         self.coins_actual_transaction = []
         self.actual_transaction: Optional[Transaction] = None
         self.timer: Optional[Timer] = None
+        self.machine_status = MachineStatus.AVAILABLE
 
     def add_product_to_slot(self, product: Product, slot_code: str) -> ProductSlot:
+        self.machine_status = MachineStatus.BUSY
         slot: ProductSlot = self.get_slot_by_code(slot_code)
         if slot:
             next_product = slot.products.get_without_consume()
             if next_product and next_product.bar_code != product.bar_code:
+                self.machine_status = MachineStatus.AVAILABLE
                 raise ValueError(VENDING_MACHINE_ADD_PRODUCT_ERROR)
             slot.products.put(product)
+            self.machine_status = MachineStatus.AVAILABLE
             return slot
 
         else:
             new_products_queue = PeekableProductsQueue([product])
             self.slots[slot_code] = ProductSlot(new_products_queue, slot_code)
+            self.machine_status = MachineStatus.AVAILABLE
             return self.slots[slot_code]
 
     def __get_product_by_slot_code(self, slot_code: str) -> Optional[Product]:
@@ -67,8 +73,10 @@ class VendingMachine:
         return product if product and product.is_valid() else None
 
     def select_product(self, slot_code: str):
+        self.machine_status = MachineStatus.BUSY
         product = self.__get_product_by_slot_code(slot_code)
         if not product:
+            self.machine_status = MachineStatus.AVAILABLE
             raise ValueError(PRODUCT_NOT_FOUND_ERROR)
 
         self.__start_timer()
@@ -110,6 +118,7 @@ class VendingMachine:
             self.__remove_coins_from_machine(coins_index_to_return)
             status = self.actual_transaction.mark_as_completed()
             self.actual_transaction = None
+            self.machine_status = MachineStatus.AVAILABLE
             return status
         except ValueError:
             return self.refund_coins()
@@ -121,6 +130,7 @@ class VendingMachine:
     def refund_coins(self):
         index_to_remove = [i for i in range(len(self.coins_actual_transaction))]
         self.__remove_coins_from_machine(index_to_remove)
+        self.machine_status = MachineStatus.AVAILABLE
         return TransactionStatus.REFUNDED
 
     def __remove_coins_from_machine(self, coins_index_to_return: List[int]):
@@ -159,3 +169,6 @@ class VendingMachine:
             }
             for slot_code, slot in self.slots.items()
         }
+
+    def get_machine_status(self):
+        return self.machine_status.value

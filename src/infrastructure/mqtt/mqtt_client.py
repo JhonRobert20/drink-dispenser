@@ -38,6 +38,7 @@ def configure_handlers(vending_machine, mongo_db, event_publisher):
         "vending_machine/add_transaction": add_transaction_handler.handle,
         # lcd
         "lcd/stock": lcd_stuff_handler.handle,
+        "lcd/machine_status": lcd_stuff_handler.handle,
     }
 
 
