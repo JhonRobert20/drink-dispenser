@@ -33,10 +33,10 @@ def configure_handlers(vending_machine, event_publisher=None):
 
 def start_and_configure_mqtt_client(
     logger,
-    broker="mqtt.example.com",
-    port=1883,
     vending_machine=None,
 ):
+    broker = os.environ.get("MQTT_BROKER", "localhost")
+    port = int(os.environ.get("MQTT_PORT", 1883))
     client_id = f"python-mqtt-{random.randint(0, 1000)}"
     mqtt_client = mqtt.Client(
         client_id=client_id, callback_api_version=CallbackAPIVersion.VERSION2
@@ -70,7 +70,7 @@ def start_and_configure_mqtt_client(
             mqtt_client.on_message = on_message
 
     mqtt_client.on_connect = on_connect
-    mqtt_client.connect(host=broker, port=int(port), keepalive=60)
+    mqtt_client.connect(host=broker, port=port, keepalive=60)
     mqtt_client.enable_logger(logger)
     subscribe_topics(mqtt_client)
     mqtt_client.loop_start()

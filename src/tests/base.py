@@ -1,6 +1,5 @@
 import datetime
 import logging
-import os
 import unittest
 
 from src.domain.entities.product import Product
@@ -80,8 +79,6 @@ class TestBaseMqtt(TestBase):
 
         self.client = start_and_configure_mqtt_client(
             logger,
-            broker=os.environ.get("MQTT_BROKER", "localhost"),
-            port=os.environ.get("MQTT_PORT", 1883),
             vending_machine=self.vending_machine,
         )
 

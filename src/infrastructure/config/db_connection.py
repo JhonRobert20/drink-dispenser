@@ -5,10 +5,10 @@ from pymongo import MongoClient, errors
 
 
 class MongodbManager:
-    def __init__(self, port="27017", bd_name="drink_dispenser"):
+    def __init__(self, bd_name="drink_dispenser"):
         self.logger = logging.getLogger("mongo")
-        self.host = os.environ.get("MONGO_DB_HOST")
-        self.port = int(port)
+        self.host = os.environ.get("MONGO_DB_HOST", "localhost")
+        self.port = int(os.environ.get("MONGO_DB_PORT", 27017))
         self.mongo_client = self.create_connection()
         self.mongo_db = self.mongo_client[bd_name]
 
@@ -68,12 +68,13 @@ class MongodbManager:
             return None
         return id_list
 
-    def find_document(self, coll_name, query, find_one=False):
+    def find_document(self, coll_name, query, find_one=False, sort=None):
         """
         Parameters:
             coll_name (str): name of the collection
             query (dict): to select documents that meet the query
             find_one (bool): True to find just one document False to find all
+            sort (list): list of tuples to sort the documents
         Return:
             Document/s if document exists else None
         """
@@ -83,7 +84,7 @@ class MongodbManager:
         collection = self.mongo_db[coll_name]
         try:
             if find_one:
-                return collection.find_one(query)
+                return collection.find_one(query, sort=sort)
             else:
                 return collection.find(query)
         except errors.PyMongoError as e:
