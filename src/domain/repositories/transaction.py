@@ -1,7 +1,8 @@
 from abc import ABC, abstractmethod
-from typing import List, Optional
+from typing import List
 
 from src.domain.entities.transaction import Transaction
+from src.domain.value_objects.coin import Coin
 
 
 class ITransactionRepository(ABC):
@@ -10,9 +11,5 @@ class ITransactionRepository(ABC):
         pass
 
     @abstractmethod
-    def get_transaction_by_id(self, transaction_id: int) -> Optional[Transaction]:
-        pass
-
-    @abstractmethod
-    def list_transactions(self) -> List[Transaction]:
+    def get_coins_from_last_transaction(self) -> List[Coin]:
         pass
