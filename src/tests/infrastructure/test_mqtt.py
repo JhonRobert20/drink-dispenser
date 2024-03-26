@@ -63,6 +63,7 @@ class MqttIntegrationTest(TestBaseMqtt):
         )
 
     def test_reject_transaction(self):
+        self.logger.info("test_reject_transaction")
         self.client.publish(
             "vending_machine/add",
             '{"product":'
@@ -74,15 +75,41 @@ class MqttIntegrationTest(TestBaseMqtt):
         time.sleep(1)
         self.client.publish("vending_machine/selections", "B4")
         time.sleep(1)
+        self.client.publish(
+            "vending_machine/add_coin", '{"denomination": 1, "currency": "EUR"}'
+        )
+        time.sleep(1)
         assert self.vending_machine.get_machine_status() == MachineStatus.BUSY.value
-        time.sleep(4.5)
-        assert (
-            self.vending_machine.get_machine_status() == MachineStatus.AVAILABLE.value
-        )
         self.client.publish("vending_machine/reject_transaction", "")
+        time.sleep(1)
         assert (
             self.vending_machine.get_machine_status() == MachineStatus.AVAILABLE.value
         )
+        coins_actual = self.vending_machine.coins_actual_transaction
+        self.assertEqual(len(coins_actual), 0)
+
+    def test_return_coins_to_user(self):
+        self.client.publish(
+            "vending_machine/add",
+            '{"product":'
+            '{"name": "Coke", "price": 2,'
+            ' "expiration_date": "2023-12-31", "bar_code": "1234"},'
+            '"slot_code": "B4"}',
+        )
+
+        time.sleep(1)
+        self.client.publish("vending_machine/selections", "B4")
+        coins_actual = self.vending_machine.coins_actual_transaction
+        self.assertEqual(len(coins_actual), 0)
+        self.client.publish(
+            "vending_machine/add_coin", '{"denomination": 1, "currency": "EUR"}'
+        )
+        time.sleep(1)
+        coins_actual = self.vending_machine.coins_actual_transaction
+        self.assertEqual(len(coins_actual), 1)
+        time.sleep(4.5)
+        coins_actual = self.vending_machine.coins_actual_transaction
+        self.assertEqual(len(coins_actual), 0)
 
 
 if __name__ == "__main__":

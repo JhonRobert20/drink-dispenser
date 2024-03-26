@@ -147,6 +147,7 @@ class VendingMachine:
 
         self.coins.append(coin)
         self.coins_actual_transaction.append(coin)
+        return True
 
     def get_slot_by_code(self, slot_code: str) -> Optional[ProductSlot]:
         if slot_code in self.slots:

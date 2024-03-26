@@ -3,11 +3,13 @@ import random
 
 import paho.mqtt.client as mqtt
 from paho.mqtt.enums import CallbackAPIVersion
+from src.application.handlers.add_coin import AddCoinHandler
 from src.application.handlers.add_product import AddProductHandler
 from src.application.handlers.consult_machine_status import ConsultMachineStatusHandler
 from src.application.handlers.consult_stock import ConsultStockHandler
 from src.application.handlers.fake_lcd import FakeLcdHandler
 from src.application.handlers.product_selection import ProductSelectionHandler
+from src.application.handlers.reject_transaction import RejectTransactionHandler
 from src.infrastructure.handlers.add_transaction import AddTransactionHandler
 from src.infrastructure.handlers.update_slot import UpdateSlotHandler
 from src.infrastructure.mqtt.messaging import MqttEventPublisher
@@ -22,6 +24,10 @@ def configure_handlers(vending_machine, mongo_db, event_publisher):
     consult_machine_status_handler = ConsultMachineStatusHandler(
         vending_machine, event_publisher
     )
+    add_coin_handler = AddCoinHandler(vending_machine, event_publisher)
+    reject_transaction_handler = RejectTransactionHandler(
+        vending_machine, event_publisher
+    )
 
     update_slot_handler = UpdateSlotHandler(mongo_db, event_publisher)
     add_transaction_handler = AddTransactionHandler(mongo_db, event_publisher)
@@ -31,9 +37,10 @@ def configure_handlers(vending_machine, mongo_db, event_publisher):
         # vending_machine from lcd
         "vending_machine/selections": product_selection_handler.handle,
         "vending_machine/add": add_product_handler.handle,
+        "vending_machine/add_coin": add_coin_handler.handle,
         "vending_machine/consult_stock": consult_stock_handler.handle,
         "vending_machine/consult_status": consult_machine_status_handler.handle,
-        "vending_machine/reject_transaction": product_selection_handler.handle,
+        "vending_machine/reject_transaction": reject_transaction_handler.handle,
         # mongo_db
         "vending_machine/update_slot": update_slot_handler.handle,
         "vending_machine/add_transaction": add_transaction_handler.handle,

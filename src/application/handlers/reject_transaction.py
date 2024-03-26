@@ -5,7 +5,7 @@ from src.domain.entities.vending_machine import VendingMachine
 from src.infrastructure.mqtt.messaging import MqttEventPublisher
 
 
-class ProductSelectionHandler:
+class RejectTransactionHandler:
     def __init__(
         self, vending_machine: VendingMachine, event_publisher: MqttEventPublisher
     ):

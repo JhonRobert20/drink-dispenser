@@ -12,9 +12,8 @@ class AddCoinCommand:
         self.vending_machine = vending_machine
         self.logger = logger
 
-    def execute(self, coin_denomination: float) -> Optional[Product]:
+    def execute(self, coin: Coin) -> Optional[Product]:
         try:
-            coin = Coin(coin_denomination, "EUR")
             return self.vending_machine.add_coin_to_transaction(coin)
         except ValueError:
             self.logger.error(INVALID_COIN_ERROR)
