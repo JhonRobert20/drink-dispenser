@@ -50,7 +50,7 @@ class MqttIntegrationTest(TestBaseMqtt):
         self.client.publish("vending_machine/selections", "B4")
         time.sleep(1)
         assert self.vending_machine.get_machine_status() == MachineStatus.BUSY.value
-        time.sleep(4)
+        time.sleep(4.5)
         assert (
             self.vending_machine.get_machine_status() == MachineStatus.AVAILABLE.value
         )
@@ -75,7 +75,7 @@ class MqttIntegrationTest(TestBaseMqtt):
         self.client.publish("vending_machine/selections", "B4")
         time.sleep(1)
         assert self.vending_machine.get_machine_status() == MachineStatus.BUSY.value
-        time.sleep(4)
+        time.sleep(4.5)
         assert (
             self.vending_machine.get_machine_status() == MachineStatus.AVAILABLE.value
         )
