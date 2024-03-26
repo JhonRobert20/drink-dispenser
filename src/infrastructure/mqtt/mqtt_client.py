@@ -1,3 +1,4 @@
+import os
 import random
 
 import paho.mqtt.client as mqtt
@@ -40,7 +41,9 @@ def start_and_configure_mqtt_client(
     mqtt_client = mqtt.Client(
         client_id=client_id, callback_api_version=CallbackAPIVersion.VERSION2
     )
-    mqtt_client.username_pw_set("user", "password")
+    mqtt_user = os.environ.get("MQTT_USER", "user")
+    mqtt_password = os.environ.get("MQTT_PASSWORD", "password")
+    mqtt_client.username_pw_set(mqtt_user, mqtt_password)
 
     event_publisher = MqttEventPublisher(mqtt_client)
     topic_handlers = configure_handlers(vending_machine, event_publisher)
@@ -68,6 +71,7 @@ def start_and_configure_mqtt_client(
 
     mqtt_client.on_connect = on_connect
     mqtt_client.connect(host=broker, port=port, keepalive=60)
+    mqtt_client.enable_logger(logger)
     subscribe_topics(mqtt_client)
     mqtt_client.loop_start()
     return mqtt_client
