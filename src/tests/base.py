@@ -72,6 +72,11 @@ class TestBase(unittest.TestCase):
         self.vending_machine.coins_actual_transaction = []
         self.mongo_db = MongodbManager(bd_name="test_drink_dispenser")
 
+    def tearDown(self):
+        self.mongo_db.drop_collection("product_slots")
+        self.mongo_db.drop_collection("transactions")
+        self.mongo_db.close_connection()
+
 
 class TestBaseMqtt(TestBase):
     def setUp(self):
@@ -79,10 +84,12 @@ class TestBaseMqtt(TestBase):
 
         self.client = start_and_configure_mqtt_client(
             logger,
+            self.mongo_db,
             vending_machine=self.vending_machine,
         )
         self.client.loop_start()
 
     def tearDown(self):
+        super().tearDown()
         self.client.loop_stop()
         self.client.disconnect()

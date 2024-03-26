@@ -29,8 +29,3 @@ class TestModels(TestBase):
             product_slots[self.slot_coke.code].products.get_without_consume().bar_code,
             self.slot_coke.products.get_without_consume().bar_code,
         )
-
-    def tearDown(self) -> None:
-        self.mongo_db.drop_collection("product_slots")
-        self.mongo_db.drop_collection("transactions")
-        self.mongo_db.close_connection()

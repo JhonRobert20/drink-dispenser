@@ -8,12 +8,14 @@ from src.application.handlers.consult_machine_status import ConsultMachineStatus
 from src.application.handlers.consult_stock import ConsultStockHandler
 from src.application.handlers.product_selection import ProductSelectionHandler
 from src.domain.entities.vending_machine import VendingMachine
+from src.infrastructure.handlers.add_transaction import AddTransactionHandler
+from src.infrastructure.handlers.update_slot import UpdateSlotHandler
 from src.infrastructure.mqtt.messaging import MqttEventPublisher
 
 vending_machine_instance = VendingMachine({}, [])
 
 
-def configure_handlers(vending_machine, event_publisher=None):
+def configure_handlers(vending_machine, mongo_db, event_publisher):
     product_selection_handler = ProductSelectionHandler(
         vending_machine, event_publisher
     )
@@ -23,9 +25,14 @@ def configure_handlers(vending_machine, event_publisher=None):
         vending_machine, event_publisher
     )
 
+    update_slot_handler = UpdateSlotHandler(mongo_db, event_publisher)
+    add_transaction_handler = AddTransactionHandler(mongo_db, event_publisher)
+
     return {
         "vending_machine/selections": product_selection_handler.handle,
         "vending_machine/add": add_product_handler.handle,
+        "vending_machine/update_slot": update_slot_handler.handle,
+        "vending_machine/add_transaction": add_transaction_handler.handle,
         "vending_machine/consult_stock": consult_stock_handler.handle,
         "vending_machine/consult_status": consult_machine_status_handler.handle,
     }
@@ -33,6 +40,7 @@ def configure_handlers(vending_machine, event_publisher=None):
 
 def start_and_configure_mqtt_client(
     logger,
+    mongo_db,
     vending_machine=None,
 ):
     broker = os.environ.get("MQTT_BROKER", "localhost")
@@ -46,7 +54,7 @@ def start_and_configure_mqtt_client(
     mqtt_client.username_pw_set(mqtt_user, mqtt_password)
 
     event_publisher = MqttEventPublisher(mqtt_client)
-    topic_handlers = configure_handlers(vending_machine, event_publisher)
+    topic_handlers = configure_handlers(vending_machine, mongo_db, event_publisher)
 
     def on_connect(client, userdata, flags, rc, *args, **kwargs):
         if rc == 0:

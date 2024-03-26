@@ -42,7 +42,7 @@ class VendingMachine:
         self.actual_transaction: Optional[Transaction] = None
         self.timer: Optional[Timer] = None
 
-    def add_product_to_slot(self, product: Product, slot_code: str):
+    def add_product_to_slot(self, product: Product, slot_code: str) -> ProductSlot:
         slot: ProductSlot = self.get_slot_by_code(slot_code)
         if slot:
             next_product = slot.products.get_without_consume()

@@ -1,11 +1,21 @@
 import time
 import unittest
 
+from src.infrastructure.persistence.repositori_impl.product_slot import (
+    ProductSlotRepositoryImpl,
+)
 from src.tests.base import TestBaseMqtt
 
 
 class MqttIntegrationTest(TestBaseMqtt):
     def test_add_product_via_mqtt(self):
+        product_slot_repo = ProductSlotRepositoryImpl(self.mongo_db)
+        stock_count = self.vending_machine.check_stock_by_code("B4")
+        product_slots = product_slot_repo.list_product_slots()
+
+        self.assertEqual(stock_count, 0)
+        self.assertEqual(len(product_slots), 0)
+
         self.client.publish(
             "vending_machine/add",
             '{"product":'
@@ -15,8 +25,10 @@ class MqttIntegrationTest(TestBaseMqtt):
         )
 
         time.sleep(1)
+        product_slots = product_slot_repo.list_product_slots()
         stock_count = self.vending_machine.check_stock_by_code("B4")
         self.assertEqual(stock_count, 1)
+        self.assertEqual(len(product_slots), 1)
 
 
 if __name__ == "__main__":

@@ -26,9 +26,11 @@ def main():
 
     vending_machine = VendingMachine(product_slots, coins)
     logger.info("Vending machine ready")
+    mongo_db = MongodbManager("drink_dispenser")
 
     return start_and_configure_mqtt_client(
         logger=logger,
+        mongo_db=mongo_db,
         vending_machine=vending_machine,
     )
 
