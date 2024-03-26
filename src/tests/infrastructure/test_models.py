@@ -1,4 +1,3 @@
-from src.domain.entities.product_slot import ProductSlot
 from src.infrastructure.persistence.repositori_impl.product_slot import (
     ProductSlotRepositoryImpl,
 )
@@ -26,9 +25,10 @@ class TestModels(TestBase):
         product_slot_repo.save_product_slot(self.slot_to_expensive)
         product_slots = product_slot_repo.list_product_slots()
         self.assertEqual(len(product_slots), 2)
-        self.assertEqual(product_slots[0].code, self.slot_coke.code)
-        self.assertEqual(product_slots[1].code, self.slot_to_expensive.code)
-        self.assertIsInstance(product_slots[0], ProductSlot)
+        self.assertEqual(
+            product_slots[self.slot_coke.code].products.get_without_consume().bar_code,
+            self.slot_coke.products.get_without_consume().bar_code,
+        )
 
     def tearDown(self) -> None:
         self.mongo_db.drop_collection("product_slots")
