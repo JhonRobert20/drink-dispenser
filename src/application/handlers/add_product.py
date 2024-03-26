@@ -23,13 +23,14 @@ class AddProductHandler:
         self.logger.info("Handling add product")
         data = json.loads(payload)
         try:
+            product_data = data["product"]
             product = Product(
-                name=data["name"],
-                price=data["price"],
+                name=product_data["name"],
+                price=product_data["price"],
                 expiration_date=datetime.datetime.strptime(
-                    data["expiration_date"], "%Y-%m-%d"
+                    product_data["expiration_date"], "%Y-%m-%d"
                 ).date(),
-                bar_code=data["bar_code"],
+                bar_code=product_data["bar_code"],
             )
             slot_code = data["slot_code"]
         except KeyError as e:
