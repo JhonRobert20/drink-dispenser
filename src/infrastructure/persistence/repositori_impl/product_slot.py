@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Dict, Optional
 
 from src.domain.entities.product_slot import ProductSlot
 from src.domain.repositories.product_slot import IProductSlotRepository
@@ -29,14 +29,14 @@ class ProductSlotRepositoryImpl(IProductSlotRepository):
             return ProductSlot(code=product_slot_data["code"], products=products)
         return None
 
-    def list_product_slots(self) -> List[ProductSlot]:
+    def list_product_slots(self) -> Optional[Dict[str, ProductSlot]]:
         product_slots_data = self.mongodb_manager.find_document(
             self.collection_name, {}, find_one=False
         )
-        product_slots = []
+        product_slots = {}
         for product_slot_data in product_slots_data:
             products = products_documents_to_product_slot(product_slot_data["products"])
-            product_slots.append(
-                ProductSlot(code=product_slot_data["code"], products=products)
+            product_slots[product_slot_data["code"]] = ProductSlot(
+                code=product_slot_data["code"], products=products
             )
         return product_slots
