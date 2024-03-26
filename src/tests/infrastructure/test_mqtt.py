@@ -111,6 +111,25 @@ class MqttIntegrationTest(TestBaseMqtt):
         coins_actual = self.vending_machine.coins_actual_transaction
         self.assertEqual(len(coins_actual), 0)
 
+    def test_dispense_product(self):
+        self.client.publish("vending_machine/selections", "A1")
+        time.sleep(1)
+        stock_size = self.vending_machine.check_stock_by_code("A1")
+        self.assertEqual(stock_size, 1)
+
+        self.client.publish(
+            "vending_machine/add_coin", '{"denomination": 1, "currency": "EUR"}'
+        )
+        time.sleep(1)
+        self.client.publish(
+            "vending_machine/add_coin", '{"denomination": 0.05, "currency": "EUR"}'
+        )
+        time.sleep(1)
+        self.client.publish("vending_machine/dispense_product", "A1")
+        time.sleep(1)
+        stock_size = self.vending_machine.check_stock_by_code("A1")
+        self.assertEqual(stock_size, 0)
+
 
 if __name__ == "__main__":
     unittest.main()

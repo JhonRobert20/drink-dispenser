@@ -10,9 +10,13 @@ class DispenseProductCommand:
         self.vending_machine = vending_machine
         self.logger = logger
 
-    def execute(self, slot_code: str) -> Optional[TransactionStatus]:
+    def execute(self) -> Optional[TransactionStatus]:
         try:
-            return self.vending_machine.dispense_product(slot_code)
+            actual_slot_code = self.vending_machine.actual_slot_code
+            if not actual_slot_code:
+                self.logger.error("No product selected")
+                return None
+            return self.vending_machine.dispense_product(actual_slot_code)
         except ValueError:
             self.logger.error(INVALID_COIN_ERROR)
             return None

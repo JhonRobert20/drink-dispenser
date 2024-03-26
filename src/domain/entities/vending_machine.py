@@ -1,9 +1,13 @@
+from copy import copy
 from threading import Timer
 from typing import Dict, List, Optional
 
 from src.domain.constants import (
     COIN_ENTITY_REQUIRED_ERROR,
+    DISPENSE_PRODUCT_ERROR_MSG,
+    DISPENSE_PRODUCT_SUCCESS_MSG,
     INVALID_COIN_ERROR,
+    NOT_ENOUGH_COINS_ERROR,
     PRODUCT_NOT_FOUND_ERROR,
     SLOT_ENTITY_REQUIRED_ERROR,
     TRANSACTION_TIMER_NEEDED_ERROR,
@@ -104,8 +108,7 @@ class VendingMachine:
     def dispense_product(self, slot_code: str):
         product_to_expend = self.check_product_availability(slot_code)
         if not product_to_expend:
-            # todo: send async message to admin
-            return self.refund_coins()
+            return self.refund_coins(), DISPENSE_PRODUCT_ERROR_MSG, None
 
         slot = self.get_slot_by_code(slot_code)
         paid_amount = round(
@@ -119,11 +122,18 @@ class VendingMachine:
             slot.products.get_if_exists()
             self.__remove_coins_from_machine(coins_index_to_return)
             status = self.actual_transaction.mark_as_completed()
-            self.actual_transaction = None
             self.machine_status = MachineStatus.AVAILABLE
-            return status
+            slot_to_return = self.get_slot_by_code(slot_code)
+            data_to_populate = {
+                "slot": slot_to_return,
+                "transaction": copy(self.actual_transaction),
+            }
+
+            self.actual_transaction = None
+
+            return status, DISPENSE_PRODUCT_SUCCESS_MSG, data_to_populate
         except ValueError:
-            return self.refund_coins()
+            return self.refund_coins(), NOT_ENOUGH_COINS_ERROR, None
 
     def __refund_coins_with_timer(self):
         # Todo: add logs

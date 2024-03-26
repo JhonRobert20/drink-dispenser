@@ -141,7 +141,7 @@ class TestVendingMachine(TestBase):
 
         self.assertEqual(slot.products.qsize(), 1)
         self.assertEqual(len(self.vending_machine.coins_actual_transaction), 2)
-        status = self.vending_machine.dispense_product("A1")
+        status, _, _ = self.vending_machine.dispense_product("A1")
         assert status == TransactionStatus.COMPLETED
         total_money_after_transaction = round(
             sum([coin.denomination for coin in self.vending_machine.coins]), 2
@@ -156,7 +156,9 @@ class TestVendingMachine(TestBase):
     def test_transaction_without_change(self):
         slot = self.vending_machine.get_slot_by_code(self.slot_to_expensive.code)
         self.assertEqual(slot.products.qsize(), 1)
-        status = self.vending_machine.dispense_product(self.slot_to_expensive.code)
+        status, _, _ = self.vending_machine.dispense_product(
+            self.slot_to_expensive.code
+        )
         assert status == TransactionStatus.REFUNDED
         self.assertEqual(slot.products.qsize(), 1)
         self.assertEqual(len(self.vending_machine.coins_actual_transaction), 0)

@@ -16,6 +16,9 @@ TRANSACTION_TIMER_NEEDED_ERROR = (
     "Transaction and timer needed, use the application layer"
 )
 
+DISPENSE_PRODUCT_SUCCESS_MSG = "Product dispensed successfully"
+DISPENSE_PRODUCT_ERROR_MSG = "Error dispensing product, product not available"
+
 
 class TransactionStatus(Enum):
     COMPLETED = "completed"
