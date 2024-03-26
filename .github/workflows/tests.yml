@@ -36,9 +36,21 @@ jobs:
           mongodb-version: '4.2'
           mongodb-replica-set: test-rs
           mongodb-port: 27017
+      - name: Start Mosquitto Broker
+        run: |
+          docker run -d --name mosquitto_container -p 1883:1883 -p 9001:9001 \
+          -v ${{ github.workspace }}/mosquitto/config/password.txt:/mosquitto/config/password.txt \
+          -v ${{ github.workspace }}/mosquitto/config/mosquitto.conf:/mosquitto/config/mosquitto.conf \
+          eclipse-mosquitto:latest
+        env:
+          TZ: Europe/Madrid
 
       - name: Test with unittest
         env:
           MONGO_DB_HOST: mongodb://localhost:27017/
+          MQTT_BROKER: localhost
+          MQTT_PORT: 1883
+          MQTT_USER: user
+          MQTT_PASSWORD: password
         run: |
           pytest
