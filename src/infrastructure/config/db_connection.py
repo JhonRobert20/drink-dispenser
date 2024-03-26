@@ -1,5 +1,6 @@
 import logging
 import os
+from typing import Optional
 
 from pymongo import MongoClient, errors
 
@@ -55,6 +56,18 @@ class MongodbManager:
                 f"Document {data} could not be upserted into '{coll_name}' - {e}"
             )
             return None
+
+    def insert_document(self, data, coll_name) -> Optional[str]:
+        self.logger.debug(f"Inserting document into {coll_name}")
+        collection = self.get_collection(coll_name)
+        try:
+            result = collection.insert_one(data)
+        except errors.PyMongoError as e:
+            self.logger.error(
+                f"Document {data} could not be inserted into '{coll_name}' - {e}"
+            )
+            return None
+        return result.inserted_id
 
     def insert_many(self, data, coll_name):
         self.logger.debug(f"Inserting many documents into {coll_name}")
