@@ -20,14 +20,19 @@ def main():
     transaction_impl = TransactionRepositoryImpl(MongodbManager("drink_dispenser"))
 
     product_slots = product_slot_impl.list_product_slots()
+    logger.info("Product slots loaded")
     coins = transaction_impl.get_coins_from_last_transaction()
+    logger.info("Coins loaded")
 
     vending_machine = VendingMachine(product_slots, coins)
+    logger.info("Vending machine ready")
 
-    start_and_configure_mqtt_client(
+    return start_and_configure_mqtt_client(
         logger=logger,
         vending_machine=vending_machine,
     )
 
 
-main()
+mqtt_client = main()
+logger.info("Starting mqtt client")
+mqtt_client.loop_forever()

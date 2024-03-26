@@ -22,7 +22,7 @@ class TransactionRepositoryImpl(ITransactionRepository):
 
     def get_coins_from_last_transaction(self) -> List[Coin]:
         last_transaction_data = self.mongodb_manager.find_document(
-            self.collection_name, {}, find_one=False, sort=[("date", -1)]
+            self.collection_name, {}, find_one=True, sort=[("date", -1)]
         )
         if not last_transaction_data:
             return []

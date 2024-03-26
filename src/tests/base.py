@@ -81,6 +81,7 @@ class TestBaseMqtt(TestBase):
             logger,
             vending_machine=self.vending_machine,
         )
+        self.client.loop_start()
 
     def tearDown(self):
         self.client.loop_stop()
