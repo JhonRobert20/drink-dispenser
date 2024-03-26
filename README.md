@@ -11,10 +11,6 @@ To consult a product stock by an employee
 To consult the machine status by an employee
 To dispense a product to an employee
 
-## Actual status of the project
-Is not possible to consult the machine status by an employee
-Is not possible to dispense a product to an employee
-
 ## Actual things done
 
 - Entities
@@ -24,6 +20,9 @@ Is not possible to dispense a product to an employee
 - Logic for the dispenser
 - Can consult the stock of a product by an employee
 - Can add more products to the dispenser
+- Can consult the logs of the dispenser
+- Can consult the machine status by an employee
+- Can dispense a product to an employee
 
 
 ## How to run the tests
@@ -40,10 +39,16 @@ $ docker exec python_container pytest
 
 ## Considerations
 
-- The project is not finished
+- The project is finished
 - The project was soo interesting to do
 - Was my very first time implementing Hexagonal Architecture and DDD, so I learned a lot
 - Please any feedback is welcome
+- The project is not perfect, but I tried to do my best
+
+## Future work
+- Implement a frontend to interact with the dispenser
+- Add better logs
+- Add more tests
 
 ## Images of the project
 Consult stock of a product
@@ -53,4 +58,7 @@ Add more products to the dispenser and other logs
 ![add_products](https://github.com/JhonRobert20/drink-dispenser/blob/main/docs/general_logs.png)
 
 Consult machine status
-![add_products](https://github.com/JhonRobert20/drink-dispenser/blob/main/docs/consult_status.png)
+![machine_status](https://github.com/JhonRobert20/drink-dispenser/blob/main/docs/consult_status.png)
+
+Add coin to the dispenser
+![add_coin](https://github.com/JhonRobert20/drink-dispenser/blob/main/docs/add_coin.png)
