@@ -17,10 +17,10 @@ services:
     environment:
       - TZ=Europe/Madrid
     volumes:
+      - ./mosquitto/config/password.txt:/mosquitto/config/password.txt
       - ./mosquitto/config/mosquitto.conf:/mosquitto/config/mosquitto.conf
       - ./mosquitto/data:/mosquitto/data
       - ./mosquitto/log:/mosquitto/log
-      - ./mosquitto/config/password.txt:/mosquitto/config/password.txt
 
   mqtt_debugger:
     image: eclipse-mosquitto:latest
