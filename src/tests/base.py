@@ -1,4 +1,5 @@
 import datetime
+import logging
 import unittest
 
 from src.domain.entities.product import Product
@@ -6,6 +7,10 @@ from src.domain.entities.vending_machine import ProductSlot, VendingMachine
 from src.domain.utils import PeekableProductsQueue
 from src.domain.value_objects.coin import Coin
 from src.infrastructure.config.db_connection import MongodbManager
+from src.infrastructure.mqtt.mqtt_client import start_and_configure_mqtt_client
+
+logging.basicConfig(level=logging.DEBUG, filename="test.log", filemode="w")
+logger = logging.getLogger("TestMqtt")
 
 
 class TestBase(unittest.TestCase):
@@ -66,3 +71,16 @@ class TestBase(unittest.TestCase):
         self.vending_machine.slots = self.initial_slot
         self.vending_machine.coins_actual_transaction = []
         self.mongo_db = MongodbManager(bd_name="test_drink_dispenser")
+
+
+class TestBaseMqtt(TestBase):
+    def setUp(self):
+        super().setUp()
+
+        self.client = start_and_configure_mqtt_client(
+            logger, broker="localhost", port=1883, vending_machine=self.vending_machine
+        )
+
+    def tearDown(self):
+        self.client.loop_stop()
+        self.client.disconnect()
