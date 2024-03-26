@@ -2,6 +2,7 @@ import datetime
 import logging
 import unittest
 
+from src.domain.constants import MachineStatus
 from src.domain.entities.product import Product
 from src.domain.entities.vending_machine import ProductSlot, VendingMachine
 from src.domain.utils import PeekableProductsQueue
@@ -64,11 +65,8 @@ class TestBase(unittest.TestCase):
             slots=self.initial_slot,
             coins=self.initial_coins,
         )
-        self.vending_machine.coins = self.initial_coins
-        self.vending_machine.actual_transaction = None
-        self.vending_machine.timer = None
         self.vending_machine.slots = self.initial_slot
-        self.vending_machine.coins_actual_transaction = []
+        self.vending_machine.coins = self.initial_coins
         self.mongo_db = MongodbManager(bd_name="test_drink_dispenser")
         self.logger = logging.getLogger("TestBase")
 
@@ -76,6 +74,13 @@ class TestBase(unittest.TestCase):
         self.mongo_db.drop_collection("product_slots")
         self.mongo_db.drop_collection("transactions")
         self.mongo_db.close_connection()
+        self.vending_machine.actual_transaction = None
+        self.vending_machine.timer = None
+        self.vending_machine.machine_status = MachineStatus.AVAILABLE
+        self.vending_machine.slots = {}
+        self.vending_machine.coins_actual_transaction = []
+        self.vending_machine.coins = []
+        self.vending_machine.actual_product = None
 
 
 class TestBaseMqtt(TestBase):

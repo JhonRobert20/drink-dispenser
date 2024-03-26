@@ -55,6 +55,35 @@ class MqttIntegrationTest(TestBaseMqtt):
             self.vending_machine.get_machine_status() == MachineStatus.AVAILABLE.value
         )
 
+    def test_reject_transaction_no_product(self):
+        self.vending_machine.actual_product = None
+        self.client.publish("vending_machine/reject_transaction", "")
+        assert (
+            self.vending_machine.get_machine_status() == MachineStatus.AVAILABLE.value
+        )
+
+    def test_reject_transaction(self):
+        self.client.publish(
+            "vending_machine/add",
+            '{"product":'
+            '{"name": "Coke", "price": 2,'
+            ' "expiration_date": "2023-12-31", "bar_code": "1234"},'
+            '"slot_code": "B4"}',
+        )
+
+        time.sleep(1)
+        self.client.publish("vending_machine/selections", "B4")
+        time.sleep(1)
+        assert self.vending_machine.get_machine_status() == MachineStatus.BUSY.value
+        time.sleep(4)
+        assert (
+            self.vending_machine.get_machine_status() == MachineStatus.AVAILABLE.value
+        )
+        self.client.publish("vending_machine/reject_transaction", "")
+        assert (
+            self.vending_machine.get_machine_status() == MachineStatus.AVAILABLE.value
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

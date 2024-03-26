@@ -33,12 +33,14 @@ def configure_handlers(vending_machine, mongo_db, event_publisher):
         "vending_machine/add": add_product_handler.handle,
         "vending_machine/consult_stock": consult_stock_handler.handle,
         "vending_machine/consult_status": consult_machine_status_handler.handle,
+        "vending_machine/reject_transaction": product_selection_handler.handle,
         # mongo_db
         "vending_machine/update_slot": update_slot_handler.handle,
         "vending_machine/add_transaction": add_transaction_handler.handle,
         # lcd
         "lcd/stock": lcd_stuff_handler.handle,
         "lcd/machine_status": lcd_stuff_handler.handle,
+        "lcd/product": lcd_stuff_handler.handle,
     }
 
 
