@@ -62,3 +62,15 @@ Consult machine status
 
 Add coin to the dispenser
 ![add_coin](https://github.com/JhonRobert20/drink-dispenser/blob/main/docs/add_coin.png)
+
+
+## Newcomers
+### Setup
+
+Install the git hooks with:
+
+```bash
+pre-commit install
+cp ./config/git-hook-commit-msg .git/hooks/commit-msg
+docker-compose up -d
+```
