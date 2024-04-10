@@ -36,6 +36,8 @@ services:
     depends_on:
       - mongo
       - mosquitto
+    volumes:
+      - ./src:/app/src
     environment:
       MONGO_DB_HOST: mongodb://mongo:27017/
       MQTT_BROKER: mosquitto
